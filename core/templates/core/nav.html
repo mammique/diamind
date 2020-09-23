@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block title %}Home{% endblock %}
+
+{% block content_classes %} page-home{% endblock %}
+
+{% block content %}
+
+<div id="navigation">
+
+	<nav aria-label="breadcrumb">
+	  <ol class="breadcrumb">
+	    <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+	    {% for e in path_entries %}
+	    <li class="breadcrumb-item{% if e.entry == entry %} active{% endif %}"><a href="{{ e.path }}">{{ e.entry.name }}</a></li>
+	    {% endfor %}
+	    <!-- <li class="breadcrumb-item active" aria-current="page">Data</li> -->
+	  </ol>
+	</nav>
+
+	<div id="navigation-horiz">
+	  <div class="row">
+	    <div class="col-3 navigation-child-list" id="navigation-children">
+
+	    	{% if children.count %}
+			<table class="table entry-list bootstrap-table-reorder-ajax bootstrap-table-reorder-ajax"
+			       data-reorderable-rows="true" data-use-row-attr-func="true" data-reorderable-ajax-url="?key_value&key_value_position="
+			       title="Drag'n drop rows to reorder.">
+			  <thead>
+			    <tr>
+			      <th data-field="id">Inherited from</th>
+			    </tr>
+			  </thead>
+				<tbody>
+					{% for c in children %}
+					<tr data-pk="{{ c.pk }}">
+						<td>
+							{{ c.span }}
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+	    	{% endif %}
+
+	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}"><i class="fas fa-plus"></i></a>{% endif %}
+	    </div>
+	    <div class="col-9" id="navigation-child">
+
+	    	{% if user.is_authenticated %}
+	    	<div class="entry-actions float-right">	
+	    		<a href="{% url 'entry_update' entry.pk %}"><i class="fas fa-edit"></i></a>
+	    		<a href="{% url 'entry_update' entry.pk %}"><i class="fas fa-trash"></i></a>
+	    	</div>
+	    	{% endif %}
+
+	    	{% if entry.name.strip != '' %}<h1>{{ entry.name }}</h1>{% endif %}
+
+	    	{% if entry.text.strip != '' %}
+	    	<div class="markdown">
+			{{ entry.text_html }}
+	    	</div>
+			{% endif %}
+
+			{% if entry.file_is_video %}
+			<div align="center" class="embed-responsive embed-responsive-16by9">
+			    <video controls class="embed-responsive-item">
+			        <source src="{{ entry.file.url }}">
+			    </video>
+			</div>
+			{% endif %}
+
+			{% if entry.image %}<a href="{{ entry.image.url }}"><img src="{{ entry.image.url }}" class="img-fluid" /></a>{% endif %}
+
+	    </div>
+	    <!-- <div class="col-3 navigation-child-list" id="navigation-child-children"></div> -->
+	  </div>
+	</div>
+
+</div>
+
+{% include "core/bootstrap_table_reorder.html" %}
+
+{% endblock %}

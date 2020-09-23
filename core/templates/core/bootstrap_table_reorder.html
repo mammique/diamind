@@ -1,0 +1,32 @@
+<link href="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.css" rel="stylesheet">
+<link href="https://unpkg.com/bootstrap-table@1.17.1/dist/extensions/reorder-rows/bootstrap-table-reorder-rows.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/TableDnD/1.0.3/jquery.tablednd.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.17.1/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.17.1/dist/extensions/reorder-rows/bootstrap-table-reorder-rows.min.js"></script>
+
+<script type="text/javascript">
+
+$(document).delegate('.bootstrap-table-reorder-ajax', 'reorder-row.bs.table', function(e, table, row_dropped, row_old) {
+
+	return;
+	var table    = $(e.currentTarget);
+	var parent   = table.parent();
+	var pk       = row_dropped._data['pk'];
+	var trs      = $('tbody tr', table);
+	var index    = null;
+	var position = 'top'
+
+	$(table).addClass('disabled_loading');
+
+	trs.each(function(k, v) { if($(v).data('pk') == pk) index = k; });
+
+	if(index >= 1) position = 'below_'+$(trs[index-1]).data('pk');
+
+	parent.load(table.data('reorderable-ajax-url')+pk+'_'+position, function() { $('table', parent).bootstrapTable(); });
+});
+
+$(document).ready(function() {
+	$('.bootstrap-table-reorder-ajax').bootstrapTable();
+});
+
+</script>

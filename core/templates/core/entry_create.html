@@ -1,0 +1,18 @@
+{% extends "core/form.html" %}
+
+{% load bootstrap4 %}
+
+{% block title %}{{ form_action }} Entry{% endblock %}
+{% block content_form_classes %} page-creator-new{% endblock %}
+
+{% block form %}
+
+<form method="post" enctype="multipart/form-data" action=".">
+{% csrf_token %}
+{% bootstrap_form form layout='horizontal' %}
+<input class="col" type="hidden" name="next" value="{{ next }}">
+{% bootstrap_button form_action button_type="submit" button_class="btn-primary" %}
+</form>
+{{ form.media }}
+
+{% endblock %}

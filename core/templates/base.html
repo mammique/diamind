@@ -1,0 +1,46 @@
+{% load bootstrap4 %}
+{% load static %}
+{% load staticfiles %}
+<!doctype html>
+<html lang="en"{% if core_class %} class="{{ core_class }}"{% endif %}>
+  	<head>
+	    <!-- Required meta tags -->
+	    <meta charset="utf-8">
+
+		{% if not settings.CDN %}
+	    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+		<link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+		<script src="{% static 'bootstrap/js/jquery.min.js' %}"></script>
+		<script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+	    {% else %}
+		{% bootstrap_css %}
+		{% bootstrap_javascript jquery='full' %}
+		{% endif %}
+
+		{# <script type="text/javascript" src="{% static 'js/script.js' %}?v={{ settings.VERSION_GIT }}"></script> #}
+
+    	<link rel="stylesheet" href="{% static 'css/style.css' %}?v={{ settings.VERSION_GIT }}">
+    	{% block style %}
+    	<link rel="stylesheet" href="{% static "fontawesome/css/all.min.css" %}">
+		{% endblock %}
+		<title>Diamind - {% block title %}Diamind{% endblock %}</title>
+		{# <link href="{% static 'img/logo.svg' %}" rel="icon" /> #}
+		<meta name="viewport" id="viewport_device" content="initial-scale=0.65">
+    	{% block head_extra %}
+		{% endblock %}
+	</head>
+
+	<script type="text/javascript">
+		var csrfmiddlewaretoken = '{{ csrf_token }}';
+	</script>
+
+	<body>
+
+	<div class="messages">{% bootstrap_messages %}</div>
+	<div id="content" class="container-fluid{% block content_classes %}{% endblock %}">
+{% block content %}
+{% endblock %}
+	</div>
+
+	</body>
+</html>
