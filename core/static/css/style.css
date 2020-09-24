@@ -8,6 +8,23 @@ html, body, .container-fluid {
 	margin: 1.5rem 2rem;
 }
 
+.page-home {
+	text-align: center;
+}
+
+.page-home h1 {
+	margin: 4rem 0 3rem 0;
+}
+
+.page-home h1 i {
+	display: block;
+	margin-top: 0.4rem;
+}
+
+.embed-responsive-16by9 {
+	background-color: black;
+}
+
 #navigation {
 	/*background-color: gray;*/
 	height: 100%;
@@ -25,9 +42,13 @@ html, body, .container-fluid {
 	color: black;
 }
 
+#navigation nav .active a,
+#navigation nav .active-child a {
+	font-weight: bold;
+}
+
 #navigation nav .active a {
 	color: #007bff;
-	font-weight: bold;
 }
 
 #navigation-horiz {
@@ -54,6 +75,22 @@ html, body, .container-fluid {
 	display: block;
 }
 
+#navigation-child #navigation-child-actions {
+	float: right;
+}
+
+#navigation-child #navigation-child-actions a {
+	color: black;
+}
+
+#navigation-child #navigation-child-file > * {
+	margin-bottom: 0.5rem;
+	display: block;
+}
+#navigation-child #navigation-child-file > *:last-child {
+	margin-bottom: 0;
+}
+
 .navigation-child-list {
 	border: 0 solid #ddd;
 }
@@ -70,12 +107,30 @@ html, body, .container-fluid {
 	border-width: 0 0 0 1px;
 }
 
+.navigation-child-list tr.active {
+	background-color: #ddd;
+}
+
+.navigation-child-list td > a {
+	color: black;
+	display: block;
+	text-decoration: none;
+}
+
 /*.navigation-child-list .btn {
 	width: 100%;
 }*/
 
 .entry-list thead {
 	display: none !important;
+}
+
+.entry-list .entry-list-container {
+	margin: 0.9rem 0 0 0.9rem;
+}
+
+.entry-list .entry-list-container .entry-list {
+	background-color: rgba(255, 255, 255, .7);
 }
 
 .badge.entry {

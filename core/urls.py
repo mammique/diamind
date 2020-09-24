@@ -10,4 +10,5 @@ urlpatterns = [
     re_path('^nav/(?P<path>[\/0-9].*)$',      views.nav,          name='nav'),
     re_path('^entry/create/$',                views.entry_create, name='entry_create'),
     re_path('^entry/update/(?P<pk>[0-9]+)/$', views.entry_update, name='entry_update'),
+    re_path('^entry/delete/(?P<pk>[0-9]+)/$', views.entry_delete, name='entry_delete'),
 ]

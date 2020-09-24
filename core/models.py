@@ -1,4 +1,4 @@
-import re
+import re, os
 
 from django.db import models
 from django.utils.html import mark_safe
@@ -14,16 +14,15 @@ from ordered_model.models import OrderedModel
 
 class Entry(OrderedModel):
 
-    name       = models.CharField(max_length=64, blank=True)
-    text       = MarkdownxField(blank=True)
-    file       = models.FileField(upload_to='file', blank=True)
-    image      = models.ImageField(upload_to='image', blank=True)
-    # url        = models.URLField(max_length=1024, blank=True)
-    root       = models.BooleanField(default=False)
-    date       = models.DateTimeField(auto_now_add=True)
-    updated_on = models.DateTimeField(auto_now=True)
-    children   = models.ManyToManyField('self', related_name="parents", blank=True)
-    # tags       = models.ManyToManyField('self', related_name="tagged_from", blank=True)
+    name        = models.CharField(max_length=64, blank=True)
+    name_parent = models.BooleanField(default=False, help_text="Use parent's name as prefix (if only one parent).")
+    text        = MarkdownxField(blank=True)
+    file        = models.FileField(upload_to='file', blank=True)
+    image       = models.ImageField(upload_to='image', blank=True)
+    root        = models.BooleanField(default=False)
+    date        = models.DateTimeField(auto_now_add=True)
+    updated_on  = models.DateTimeField(auto_now=True)
+    parents     = models.ManyToManyField('self', related_name="children", symmetrical=False, blank=True)
 
     order_with_respect_to = 'pk'
 
@@ -32,6 +31,9 @@ class Entry(OrderedModel):
 
     def file_is_video(self):
         return self.file_ext() in ('mp4', 'ogg', 'webm',)
+
+    def file_filename(self):
+        return os.path.basename(self.file.name)
 
     def text_html(self): return mark_safe(markdownify(self.text))
 

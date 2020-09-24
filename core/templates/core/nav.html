@@ -7,7 +7,7 @@
 
 {% block title %}Home{% endblock %}
 
-{% block content_classes %} page-home{% endblock %}
+{% block content_classes %} page-navigation{% endblock %}
 
 {% block content %}
 
@@ -17,7 +17,7 @@
 	  <ol class="breadcrumb">
 	    <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
 	    {% for e in path_entries %}
-	    <li class="breadcrumb-item{% if e.entry == entry %} active{% endif %}"><a href="{{ e.path }}">{{ e.entry.name }}</a></li>
+	    <li class="breadcrumb-item{% if e.entry == entry %} active{% elif e.entry == child %} active-child{% endif %}"><a href="{{ e.path }}">{{ e.entry.name }}</a></li>
 	    {% endfor %}
 	    <!-- <li class="breadcrumb-item active" aria-current="page">Data</li> -->
 	  </ol>
@@ -27,7 +27,7 @@
 	  <div class="row">
 	    <div class="col-3 navigation-child-list" id="navigation-children">
 
-	    	{% if children.count %}
+	    	{% if entry.children.all.count %}
 			<table class="table entry-list bootstrap-table-reorder-ajax bootstrap-table-reorder-ajax"
 			       data-reorderable-rows="true" data-use-row-attr-func="true" data-reorderable-ajax-url="?key_value&key_value_position="
 			       title="Drag'n drop rows to reorder.">
@@ -37,10 +37,33 @@
 			    </tr>
 			  </thead>
 				<tbody>
-					{% for c in children %}
-					<tr data-pk="{{ c.pk }}">
+					{% for c in entry.children.all %}
+					<tr data-pk="{{ c.pk }}"{% if c == child %} class="active"{% endif %}>
 						<td>
+							<!-- <a href="{{ path_clean }}?e={{ entry.pk }}&c={{ c.pk }}">{{ c.span }}</a> -->
+							<a href="{{ path_entry }}{{ c.pk }}/?e={{ entry.pk }}&c={{ c.pk }}">
+							{% if c.children.all.count %}<i class="fas fa-caret-{% if c == child %}down{% else %}right{% endif %}"></i>{% endif %}
 							{{ c.span }}
+							</a>
+
+					    	{% if c == child and child.children.all.count %}
+					    	<div class="entry-list-container">				    		
+								<table class="table entry-list">
+									<tbody>
+										{% for cc in child.children.all %}
+										<tr data-pk="{{ cc.pk }}">
+											<td>
+												<a href="{{ path_entry }}{{ child.pk }}/{{ cc.pk }}/?e={{ child.pk }}&c={{ cc.pk }}">
+												{% if cc.children.all.count %}<i class="fas fa-caret-right"></i>{% endif %}
+												{{ cc.span }}
+												</a>
+											</td>
+										</tr>
+										{% endfor %}
+									</tbody>
+								</table>
+					    	</div>
+					    	{% endif %}
 						</td>
 					</tr>
 					{% endfor %}
@@ -48,37 +71,43 @@
 			</table>
 	    	{% endif %}
 
-	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}"><i class="fas fa-plus"></i></a>{% endif %}
+	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}%3Fe%3D{{ entry.pk }}"><i class="fas fa-plus"></i></a>{% endif %}
 	    </div>
 	    <div class="col-9" id="navigation-child">
 
 	    	{% if user.is_authenticated %}
-	    	<div class="entry-actions float-right">	
-	    		<a href="{% url 'entry_update' entry.pk %}"><i class="fas fa-edit"></i></a>
-	    		<a href="{% url 'entry_update' entry.pk %}"><i class="fas fa-trash"></i></a>
+	    	<div id="navigation-child-actions">	
+	    		<a href="{% url 'entry_update' child.pk %}?next={{ path_clean|urlencode }}%3Fe%3D{{ entry.pk }}%26c%3D{{ child.pk }}"><i class="fas fa-edit"></i></a>
+	    		<a href="{% url 'entry_delete' child.pk %}{% if parent %}?next={{ path_clean|urlencode }}%3Fe%3D{{ parent.pk }}{% endif %}"
+	    		   onclick="return false;" ondblclick="document.location = $(this).attr('href');"><i class="fas fa-trash"></i></a>
 	    	</div>
 	    	{% endif %}
 
-	    	{% if entry.name.strip != '' %}<h1>{{ entry.name }}</h1>{% endif %}
+	    	{% if child.name.strip != '' %}<h1>{{ child.name }}</h1>{% endif %}
 
-	    	{% if entry.text.strip != '' %}
-	    	<div class="markdown">
-			{{ entry.text_html }}
+	    	{% if child.text.strip != '' %}
+	    	<div id="navigation-child-markdown">
+			{{ child.text_html }}
 	    	</div>
 			{% endif %}
 
-			{% if entry.file_is_video %}
-			<div align="center" class="embed-responsive embed-responsive-16by9">
-			    <video controls class="embed-responsive-item">
-			        <source src="{{ entry.file.url }}">
-			    </video>
+			{% if child.file %}
+			<div id="navigation-child-file">			
+				{% if child.file_is_video %}
+				<div align="center" class="embed-responsive embed-responsive-16by9">
+				    <video controls class="embed-responsive-item">
+				        <source src="{{ child.file.url }}">
+				    </video>
+				</div>
+				{% endif %}
+				<a href="{{ child.file.url }}">{{ child.file_filename }}</a>
 			</div>
 			{% endif %}
 
-			{% if entry.image %}<a href="{{ entry.image.url }}"><img src="{{ entry.image.url }}" class="img-fluid" /></a>{% endif %}
+			{% if child.image %}<a href="{{ child.image.url }}"><img src="{{ child.image.url }}" class="img-fluid" /></a>{% endif %}
 
 	    </div>
-	    <!-- <div class="col-3 navigation-child-list" id="navigation-child-children"></div> -->
+	    <!-- <div class="col-2 navigation-child-list" id="navigation-child-children"></div> -->
 	  </div>
 	</div>
 
