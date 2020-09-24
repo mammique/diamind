@@ -13,8 +13,15 @@
 
 <h1>Diamind <i class="fas fa-gem"></i></h1>
 
-<div>
-{% for e in entries %}
+<div id="home-entries-root">
+{% for e in root_entries %}
+{{ e.badge }}
+{% endfor %}
+</div>
+
+<div id="home-entries-latest">
+<h3>Latest modifications</h3>
+{% for e in latest_entries %}
 {{ e.badge }}
 {% endfor %}
 </div>

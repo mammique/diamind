@@ -1,17 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
-from django.forms import ModelForm
+from django.forms import ModelForm, ModelChoiceField
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.contrib import messages
 from django.utils.html import mark_safe
+
+from dal import autocomplete
 
 from core.models import Entry
 
 
 def home(request):
 
-    return render(request, 'core/home.html', {'entries': Entry.objects.filter(root=True).order_by('name')})
+    return render(request, 'core/home.html', {'root_entries':   Entry.objects.filter(root=True).order_by('name'),
+                                              'latest_entries': Entry.objects.all().order_by('-updated_on')[0:12]})
 
 
 def nav(request, path):
@@ -19,6 +22,7 @@ def nav(request, path):
     # print(request.PATH)
 
     path_entries = []
+    entries_raw  = []
     entry        = None
     entry_pk     = int(request.GET.get('e', -1))
     child        = None
@@ -36,7 +40,12 @@ def nav(request, path):
 
             if not path_entry: continue
 
-            path_entries.append({'entry': path_entry, 'path': path_current})
+            if path_entry.name_parent and path_entry.name_parent in entries_raw:
+                span = path_entry.span_no_name_parent()
+            else: span = path_entry.span()
+
+            path_entries.append({'entry': path_entry, 'path': path_current, 'span': span})
+            entries_raw.append(path_entry)
 
             if path_entry.pk == entry_pk:
 
@@ -71,9 +80,57 @@ def nav(request, path):
 
 class EntryForm(ModelForm):
 
+    def __init__(self,*args,**kwargs):
+
+        super().__init__(*args,**kwargs) # populates the post
+
+        instance = getattr(self, 'instance', None)
+
+        if instance and instance.pk: name_parent_qs = instance.parents
+        else: name_parent_qs = Entry.objects.none()
+
+        self.fields['name_parent'].queryset = name_parent_qs
+
     class Meta:
         model  = Entry
         fields = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'root',)
+        widgets = {
+            'parents': autocomplete.ModelSelect2Multiple(
+                'entry_autocomplete', attrs={'data-html': True},
+            )
+        }
+
+
+class EntryAutocomplete(autocomplete.Select2QuerySetView):
+
+    def get_result_label(self, entry):
+        return entry.span()
+
+    def get_queryset(self):
+
+        qs = Entry.objects.all()
+
+        if self.q:
+
+            qs_kw = None
+
+            for kw in self.q.split(' '):
+
+                if kw == '': continue            
+
+                qs_name  = qs.filter(name__icontains=kw)
+                qs_text  = qs.filter(text__icontains=kw)
+                qs_file  = qs.filter(file__icontains=kw)
+                qs_image = qs.filter(image__icontains=kw)
+
+                print(qs_name | qs_text | qs_file | qs_image)
+
+                if qs_kw == None: qs_kw = qs_name | qs_text | qs_file | qs_image
+                else: qs_kw = qs_kw & (qs_name | qs_text | qs_file | qs_image)
+
+            if qs_kw: qs = qs_kw.distinct()
+
+        return qs
 
 
 @login_required
@@ -119,7 +176,7 @@ def entry_update(request, pk):
 
             if nxt: return redirect(nxt)
 
-    return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Update'})
+    return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Update', 'next': nxt})
 
 
 @login_required
@@ -133,6 +190,5 @@ def entry_delete(request, pk): # FIXME: CSRF
     messages.success(request, mark_safe('"%s" successfully deleted.' % entry))
 
     if nxt: return redirect(nxt)
-    else:   return redirect(reverse('home'))
 
-    return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Update'})
+    return redirect(reverse('home'))

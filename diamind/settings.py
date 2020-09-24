@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'responsive_images',
     'markdownx',
     'django_static_fontawesome',
+    'dal',
+    'dal_select2',
 
     'django.contrib.admin',
     'django.contrib.auth',
