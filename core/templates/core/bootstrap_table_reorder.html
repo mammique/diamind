@@ -8,8 +8,6 @@
 
 $(document).delegate('.bootstrap-table-reorder-ajax', 'reorder-row.bs.table', function(e, table, row_dropped, row_old) {
 
-	// console.log("mljmlkj")
-
 	var table    = $(e.currentTarget);
 	var parent   = table.parent();
 	var pk       = row_dropped._data['pk'];

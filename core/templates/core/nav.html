@@ -27,49 +27,7 @@
 	  <div class="row">
 	    <div class="col-3 navigation-child-list" id="navigation-children">
 
-	    	{% if entry.children.all.count %}
-			<table class="table table-bordered entry-list{% if user.is_authenticated %} bootstrap-table-reorder-ajax bootstrap-table-reorder-ajax{% endif %}"
-			       {% if user.is_authenticated %} data-reorderable-rows="true" data-use-row-attr-func="true" data-reorderable-ajax-url="?key_value&key_value_position="
-			       title="Drag'n drop rows to reorder."{% endif %}>
-			  <thead>
-			    <tr>
-			      <th data-field="id">Inherited from</th>
-			    </tr>
-			  </thead>
-				<tbody>
-					{% for c in entry.children.all %}
-					<tr data-pk="{{ c.pk }}"{% if c == child %} class="active"{% endif %}>
-						<td>
-							<!-- <a href="{{ path_clean }}?e={{ entry.pk }}&c={{ c.pk }}">{{ c.span }}</a> -->
-							<a href="{{ path_entry }}{{ c.pk }}/?e={{ entry.pk }}&c={{ c.pk }}">
-							{% if c.children.all.count %}<i class="far fa-folder{% if c == child %}-open{% endif %}"></i>{% endif %}
-							{% if c.name_parent == entry %}{{ c.span_no_name_parent }}{% else %}{{ c.span }}{% endif %}
-							</a>
-
-					    	{% if c == child and child.children.all.count %}
-					    	<div class="entry-list-container">				    		
-								<table class="table table-bordered entry-list">
-									<tbody>
-										{% for cc in child.children.all %}
-										<tr data-pk="{{ cc.pk }}">
-											<td>
-												<a href="{{ path_entry }}{{ child.pk }}/{{ cc.pk }}/?e={{ child.pk }}&c={{ cc.pk }}">
-												{% if cc.children.all.count %}<i class="fas fa-caret-right"></i>{% endif %}
-												{% if cc.name_parent == child %}{{ cc.span_no_name_parent }}{% else %}{{ cc.span }}{% endif %}
-												</a>
-											</td>
-										</tr>
-										{% endfor %}
-									</tbody>
-								</table>
-					    	</div>
-					    	{% endif %}
-						</td>
-					</tr>
-					{% endfor %}
-				</tbody>
-			</table>
-	    	{% endif %}
+	    	{% if entry.children.all.count %}{% include "core/nav_children.html" %}{% endif %}
 
 	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}%3Fe%3D{{ entry.pk }}"><i class="fas fa-plus"></i></a>{% endif %}
 	    </div>

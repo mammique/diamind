@@ -12,18 +12,30 @@ from markdownx.utils import markdownify
 from ordered_model.models import OrderedModel
 
 
-class Entry(OrderedModel):
+class EntryParentThroughModel(OrderedModel):
+
+    parent = models.ForeignKey('Entry', on_delete=models.CASCADE, related_name="children_through")
+    child  = models.ForeignKey('Entry', on_delete=models.CASCADE, related_name="parents_through")
+
+    order_with_respect_to = 'parent'
+
+    def __str__(self):
+        return 'Parent: %s (%s) - Child: %s (%s)' % \
+            (self.parent.name_get_no_name_parent(), self.parent.pk, self.child.name_get_no_name_parent(), self.child.pk)
+
+
+class Entry(models.Model):
 
     name        = models.CharField(max_length=64, blank=True)
-    # name_parent = models.BooleanField(default=False, help_text="Use parent's name as prefix (if only one parent).")
-    name_parent = models.ForeignKey('self', help_text="Use this parent's name as prefix when displayed out of context.", null=True, blank=True, on_delete=models.SET_NULL)
+    name_parent = models.ForeignKey('self', help_text="Use this parent's name as prefix when displayed out of context.",
+                                    null=True, blank=True, on_delete=models.SET_NULL, related_name="children_using_name")
     text        = MarkdownxField(blank=True)
     file        = models.FileField(upload_to='file', blank=True)
     image       = models.ImageField(upload_to='image', blank=True)
-    root        = models.BooleanField(default=False)
+    home        = models.BooleanField(default=False, help_text="Display entry in home page.")
     date        = models.DateTimeField(auto_now_add=True)
     updated_on  = models.DateTimeField(auto_now=True)
-    parents     = models.ManyToManyField('self', related_name="children", symmetrical=False, blank=True)
+    children    = models.ManyToManyField('self', related_name="parents", symmetrical=False, blank=True, through='EntryParentThroughModel', through_fields=('parent', 'child'),)
 
     order_with_respect_to = 'pk'
 
@@ -77,5 +89,6 @@ class Entry(OrderedModel):
 
     def __str__(self): return self.name_get()
 
-    class Meta(OrderedModel.Meta):
-        verbose_name_plural   = "Entries"
+    class Meta:
+        verbose_name_plural = "Entries"
+        # ordering = ('parents_through__order', 'children_through__order',)

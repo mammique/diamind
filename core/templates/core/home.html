@@ -13,17 +13,23 @@
 
 <h1>Diamind <i class="fas fa-gem"></i></h1>
 
-<div id="home-entries-root">
-{% for e in root_entries %}
+{% if home_entries.count %}
+<div id="home-entries">
+{% for e in home_entries %}
 {{ e.badge }}
 {% endfor %}
 </div>
+{% endif %}
 
+{% if user.is_authenticated %}<a class="btn btn-primary" href="{% url 'entry_create' %}?home"><i class="fas fa-plus"></i> New entry</a>{% endif %}
+
+{% if latest_entries.count %}
 <div id="home-entries-latest">
 <h3>Latest modifications</h3>
 {% for e in latest_entries %}
 {{ e.badge }}
 {% endfor %}
 </div>
+{% endif %}
 
 {% endblock %}

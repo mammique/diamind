@@ -8,18 +8,16 @@ from django.utils.html import mark_safe
 
 from dal import autocomplete
 
-from core.models import Entry
+from core.models import EntryParentThroughModel, Entry
 
 
 def home(request):
 
-    return render(request, 'core/home.html', {'root_entries':   Entry.objects.filter(root=True).order_by('name'),
-                                              'latest_entries': Entry.objects.all().order_by('-updated_on')[0:12]})
+    return render(request, 'core/home.html', {'home_entries':   Entry.objects.filter(home=True).order_by('name'),
+                                              'latest_entries': Entry.objects.all().distinct().order_by('-updated_on')[0:12]})
 
 
 def nav(request, path):
-
-    # print(request.PATH)
 
     path_entries = []
     entries_raw  = []
@@ -67,22 +65,36 @@ def nav(request, path):
         e['path'] = '%s?e=%s' % (path_clean, e['entry'].pk,)
         previous_parent = e['entry']
 
-    children = Entry.objects.filter(root=True).order_by('name')
+    if 'children_position' in request.GET:
 
-    return render(request, 'core/nav.html', {'path_entries': path_entries,
-                                             'path_clean':   path_clean,
-                                             'path_entry':   path_e,
-                                             'entry':        entry,
-                                             'child':        child,
-                                             'parent':       parent,
-                                            })
+        instance_1 = entry.children.get(pk=request.GET['children_position'].split('_')[0])
+        instance_1_through = EntryParentThroughModel.objects.get(parent=entry, child=instance_1)
+
+        if request.GET['children_position'].endswith('top'):
+            instance_1_through.top()
+
+        else:
+            instance_2 = entry.children.get(pk=request.GET['children_position'].split('_')[2])
+            instance_2_through = EntryParentThroughModel.objects.get(parent=entry, child=instance_2)
+            instance_1_through.below(instance_2_through)
+
+    if 'children' in request.GET: template = 'core/nav_children.html'
+    else: template = 'core/nav.html'
+
+    return render(request, template, {'path_entries': path_entries,
+                                      'path_clean':   path_clean,
+                                      'path_entry':   path_e,
+                                      'entry':        entry,
+                                      'child':        child,
+                                      'parent':       parent,
+                                     })
 
 
 class EntryForm(ModelForm):
 
     def __init__(self,*args,**kwargs):
 
-        super().__init__(*args,**kwargs) # populates the post
+        super().__init__(*args,**kwargs)
 
         instance = getattr(self, 'instance', None)
 
@@ -93,9 +105,9 @@ class EntryForm(ModelForm):
 
     class Meta:
         model  = Entry
-        fields = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'root',)
+        fields = ('name', 'name_parent', 'text' ,'file', 'image', 'children', 'home',)
         widgets = {
-            'parents': autocomplete.ModelSelect2Multiple(
+            'children': autocomplete.ModelSelect2Multiple(
                 'entry_autocomplete', attrs={'data-html': True},
             )
         }
@@ -108,7 +120,7 @@ class EntryAutocomplete(autocomplete.Select2QuerySetView):
 
     def get_queryset(self):
 
-        qs = Entry.objects.all()
+        qs = Entry.objects.all().order_by('name')
 
         if self.q:
 
@@ -118,19 +130,18 @@ class EntryAutocomplete(autocomplete.Select2QuerySetView):
 
                 if kw == '': continue            
 
-                qs_name  = qs.filter(name__icontains=kw)
-                qs_text  = qs.filter(text__icontains=kw)
-                qs_file  = qs.filter(file__icontains=kw)
-                qs_image = qs.filter(image__icontains=kw)
+                qs_parents_name = qs.filter(parents__name__icontains=kw)
+                qs_name         = qs.filter(name__icontains=kw)
+                qs_text         = qs.filter(text__icontains=kw)
+                qs_file         = qs.filter(file__icontains=kw)
+                qs_image        = qs.filter(image__icontains=kw)
 
-                print(qs_name | qs_text | qs_file | qs_image)
-
-                if qs_kw == None: qs_kw = qs_name | qs_text | qs_file | qs_image
+                if qs_kw == None: qs_kw = qs_parents_name | qs_name | qs_text | qs_file | qs_image
                 else: qs_kw = qs_kw & (qs_name | qs_text | qs_file | qs_image)
 
-            if qs_kw: qs = qs_kw.distinct()
+            if qs_kw: qs = qs_kw
 
-        return qs
+        return qs.distinct()
 
 
 @login_required
@@ -139,8 +150,10 @@ def entry_create(request):
     nxt = request.GET.get('next', None)
     if not nxt: nxt = request.POST.get('next', None)
 
-    if 'parent' in request.GET: initial = {'parents': [get_object_or_404(Entry, pk=request.GET.get('parent'))]}
-    else: initial = {}
+    initial = {}
+
+    if 'parent' in request.GET: initial['parents'] = [get_object_or_404(Entry, pk=request.GET.get('parent'))]
+    if 'home'   in request.GET: initial['home']    = True
 
     form = EntryForm(initial=initial)
 

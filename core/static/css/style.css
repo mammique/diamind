@@ -8,6 +8,14 @@ html, body, .container-fluid {
 	margin: 1.5rem 2rem;
 }
 
+.disabled_loading {
+    opacity: 0.5;
+    cursor: wait;
+}
+.disabled_loading > * {
+    pointer-events: none;
+}
+
 .page-home {
 	text-align: center;
 }
