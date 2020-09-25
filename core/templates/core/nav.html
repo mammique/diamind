@@ -29,7 +29,7 @@
 
 	    	{% if entry_children %}{% include "core/nav_children.html" %}{% endif %}
 
-	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}%3Fe%3D{{ entry.pk }}"><i class="fas fa-plus"></i></a>{% endif %}
+	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>{% endif %}
 	    </div>
 	    <div class="col-9" id="navigation-child">
 

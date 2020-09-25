@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
-from django.forms import ModelForm, ModelChoiceField
+from django.forms import ModelForm, ModelChoiceField, BooleanField
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.contrib import messages
@@ -114,13 +114,25 @@ class EntryForm(ModelForm):
         self.fields['name_parent'].queryset = name_parent_qs
 
     class Meta:
-        model  = Entry
-        fields = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'home',)
+
+        model   = Entry
+        fields  = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'home',)
         widgets = {
             'parents': autocomplete.ModelSelect2Multiple(
                 'entry_autocomplete', attrs={'data-html': True},
             )
         }
+
+
+class EntryParentForm(ModelForm):
+
+    name_parent_bool = BooleanField(required=False, label="Parent name prefix",
+                                    help_text="Use parent's name as prefix when displayed out of context.")
+
+    class Meta:
+
+        model  = Entry
+        fields = ('name', 'name_parent_bool', 'text' ,'file', 'image', 'home',)
 
 
 class EntryAutocomplete(autocomplete.Select2QuerySetView):
@@ -162,22 +174,36 @@ def entry_create(request):
 
     initial = {}
 
-    if 'parent' in request.GET: initial['parents'] = [get_object_or_404(Entry, pk=request.GET.get('parent'))]
-    if 'home'   in request.GET: initial['home']    = True
+    parent = Entry.objects.filter(pk=request.GET.get('parent')).last()
+    if parent == None: parent = Entry.objects.filter(pk=request.POST.get('parent')).last()
 
-    form = EntryForm(initial=initial)
+    if 'home' in request.GET: initial['home'] = True
+
+    if parent: form = EntryParentForm(initial=initial)
+    else:      form = EntryForm(initial=initial)
 
     if request.method == 'POST':
 
-        form = EntryForm(request.POST, request.FILES)
+        if parent: form = EntryParentForm(request.POST, request.FILES)
+        else:      form = EntryForm(request.POST, request.FILES)
 
         if form.is_valid():
 
             entry = form.save()
-            if entry.parents.all().count() and nxt: return redirect('%s&c=%s' % (nxt, entry.pk,))
-            else: return redirect(reverse('nav', kwargs={'path': entry.pk}))
 
-    return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Create', 'next': nxt})
+            if parent: entry.parents.add(parent)
+
+            if 'name_parent_bool' in request.POST:
+
+                entry.name_parent = parent
+                entry.save()
+
+            if parent and nxt != None:
+                return redirect('%s%s/?e=%s&c=%s' % (nxt, entry.pk, parent.pk, entry.pk,))
+            else:
+                return redirect(reverse('nav', kwargs={'path': entry.pk}))
+
+    return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Create', 'next': nxt, 'parent': parent})
 
 
 @login_required

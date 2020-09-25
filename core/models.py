@@ -27,7 +27,8 @@ class EntryParentThroughModel(OrderedModel):
 class Entry(models.Model):
 
     name        = models.CharField(max_length=64, blank=True)
-    name_parent = models.ForeignKey('self', help_text="Use this parent's name as prefix when displayed out of context.",
+    name_parent = models.ForeignKey('self', verbose_name="Parent name prefix",
+                                    help_text="Use this parent's name as prefix when displayed out of context.",
                                     null=True, blank=True, on_delete=models.SET_NULL, related_name="children_using_name")
     text        = MarkdownxField(blank=True)
     file        = models.FileField(upload_to='file', blank=True)
