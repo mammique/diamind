@@ -35,7 +35,7 @@ class Entry(models.Model):
     home        = models.BooleanField(default=False, help_text="Display entry in home page.")
     date        = models.DateTimeField(auto_now_add=True)
     updated_on  = models.DateTimeField(auto_now=True)
-    children    = models.ManyToManyField('self', related_name="parents", symmetrical=False, blank=True, through='EntryParentThroughModel', through_fields=('parent', 'child'),)
+    parents     = models.ManyToManyField('self', related_name="children", symmetrical=False, blank=True, through='EntryParentThroughModel', through_fields=('child', 'parent'),)
 
     order_with_respect_to = 'pk'
 

@@ -81,12 +81,22 @@ def nav(request, path):
     if 'children' in request.GET: template = 'core/nav_children.html'
     else: template = 'core/nav.html'
 
-    return render(request, template, {'path_entries': path_entries,
-                                      'path_clean':   path_clean,
-                                      'path_entry':   path_e,
-                                      'entry':        entry,
-                                      'child':        child,
-                                      'parent':       parent,
+    entry_children = []
+    for e in entry.children.all().order_by('parents_through__order', 'children_through__order',): # Quick fix for OrderedModel .distinct() fail.
+        if not e in entry_children: entry_children.append(e)
+
+    child_children = []
+    for e in child.children.all().order_by('parents_through__order', 'children_through__order',): # Quick fix for OrderedModel .distinct() fail.
+        if not e in child_children: child_children.append(e)
+
+    return render(request, template, {'path_entries':   path_entries,
+                                      'path_clean':     path_clean,
+                                      'path_entry':     path_e,
+                                      'entry':          entry,
+                                      'entry_children': entry_children,
+                                      'child':          child,
+                                      'child_children': child_children,
+                                      'parent':         parent,
                                      })
 
 
@@ -105,9 +115,9 @@ class EntryForm(ModelForm):
 
     class Meta:
         model  = Entry
-        fields = ('name', 'name_parent', 'text' ,'file', 'image', 'children', 'home',)
+        fields = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'home',)
         widgets = {
-            'children': autocomplete.ModelSelect2Multiple(
+            'parents': autocomplete.ModelSelect2Multiple(
                 'entry_autocomplete', attrs={'data-html': True},
             )
         }
@@ -164,7 +174,8 @@ def entry_create(request):
         if form.is_valid():
 
             entry = form.save()
-            if entry.parents.all().count(): return redirect('%s&c=%s' % (nxt, entry.pk,))
+            if entry.parents.all().count() and nxt: return redirect('%s&c=%s' % (nxt, entry.pk,))
+            else: return redirect(reverse('nav', kwargs={'path': entry.pk}))
 
     return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Create', 'next': nxt})
 
