@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
-from django.forms import ModelForm, ModelChoiceField, BooleanField
+from django.forms import ModelForm, ModelChoiceField, BooleanField, ModelMultipleChoiceField
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.contrib import messages
@@ -26,12 +26,14 @@ def nav(request, path):
     child        = None
     child_pk     = int(request.GET.get('c', -1))
 
-    path_current = '/nav/'
+    path_current = ''
     path_e       = None
 
     for pk in path.split('/'):
 
         if pk != '':
+
+            path_prev_len = len(path_current)
 
             path_current = '%s%s/' % (path_current, pk)
             path_entry   = Entry.objects.filter(pk=pk).last()
@@ -42,7 +44,7 @@ def nav(request, path):
                 span = path_entry.span_no_name_parent()
             else: span = path_entry.span()
 
-            path_entries.append({'entry': path_entry, 'path': path_current, 'span': span})
+            path_entries.append({'entry': path_entry, 'span': span, 'path': path_current, 'path_prev_len': path_prev_len})
             entries_raw.append(path_entry)
 
             if path_entry.pk == entry_pk:
@@ -52,18 +54,34 @@ def nav(request, path):
 
             elif path_entry.pk == child_pk: child = path_entry
 
-    path_clean = path_current
-
     if not entry:  entry  = path_entries[-1]['entry']
     if not path_e: path_e = path_entries[-1]['path']
     if not child:  child  = entry
 
+    path_e     = reverse('nav', kwargs={'path': path_e})
+    path_clean = reverse('nav', kwargs={'path': path_current})
+
     parent          = None
     previous_parent = None
+    entry_root_path = None
     for e in path_entries:
         if e['entry'] == child: parent = previous_parent
-        e['path'] = '%s?e=%s' % (path_clean, e['entry'].pk,)
+
+        if e['entry'] not in (entry, child,) and previous_parent:
+            e['path'] = '%s?e=%s&c=%s' % (path_clean, previous_parent.pk, e['entry'].pk,)
+        else:
+            e['path'] = '%s?e=%s' % (path_clean, e['entry'].pk,)
+
         previous_parent = e['entry']
+
+        if e['entry'] == entry: entry_root_path = path_current[e['path_prev_len']:]
+
+    parents = []
+    if parent: parents_exclude = {'pk': parent.pk}
+    else: parents_exclude = {}
+
+    for parent in entry.parents.exclude(**parents_exclude).order_by('name'):
+        parents.append({'entry': parent, 'path': reverse('nav', kwargs={'path': '%s/%s' % (parent.pk, entry_root_path,)}) + '?e=%s&c=%s' % (parent.pk, entry.pk,)})
 
     if 'children_position' in request.GET:
 
@@ -97,10 +115,15 @@ def nav(request, path):
                                       'child':          child,
                                       'child_children': child_children,
                                       'parent':         parent,
+                                      'parents':        parents,
                                      })
 
 
 class EntryForm(ModelForm):
+
+    children = ModelMultipleChoiceField(queryset=Entry.objects.all(), widget=autocomplete.ModelSelect2Multiple(
+                'entry_autocomplete', attrs={'data-html': True},
+            ))
 
     def __init__(self,*args,**kwargs):
 
@@ -108,7 +131,9 @@ class EntryForm(ModelForm):
 
         instance = getattr(self, 'instance', None)
 
-        if instance and instance.pk: name_parent_qs = instance.parents
+        if instance and instance.pk:
+            name_parent_qs = instance.parents
+            self.fields['children'].initial = instance.children.all()
         else: name_parent_qs = Entry.objects.none()
 
         self.fields['name_parent'].queryset = name_parent_qs
@@ -223,6 +248,12 @@ def entry_update(request, pk):
         if form.is_valid():
 
             entry = form.save()
+
+            diff_add = form.cleaned_data['children'].difference(entry.children.all())
+            diff_rm   = entry.children.all().difference(form.cleaned_data['children'])
+
+            if diff_add.count(): entry.children.add(*diff_add)
+            if diff_rm.count():  entry.children.remove(*diff_rm)
 
             if nxt: return redirect(nxt)
 

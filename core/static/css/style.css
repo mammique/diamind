@@ -121,6 +121,10 @@ html, body, .container-fluid {
 }
 
 .navigation-child-list > * {
+	margin-bottom: 3rem;
+}
+
+.navigation-child-list > * > * {
 	margin-bottom: 1rem;
 }
 

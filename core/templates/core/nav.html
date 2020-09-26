@@ -27,9 +27,43 @@
 	  <div class="row">
 	    <div class="col-3 navigation-child-list" id="navigation-children">
 
-	    	{% if entry_children %}{% include "core/nav_children.html" %}{% endif %}
+	    	<div>    		
+		    	{% if entry_children %}{% include "core/nav_children.html" %}{% endif %}
+		    	{% if user.is_authenticated %}
+		    	<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>{% endif %}
+	    	</div>
 
-	    	{% if user.is_authenticated %}<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>{% endif %}
+
+
+	    	{% if parents %}
+	    	<div>
+	    		
+
+		    	<h5><i class="fas fa-arrow-left"></i> / <i class="far fa-folder-open"></i></h5>
+
+
+
+
+				<table class="table table-bordered entry-list">
+				<!--   <thead>
+				    <tr>
+				      <th><i class="fas fa-arrow-left"></i> / <i class="far fa-folder-open"></i></th>
+				    </tr>
+				  </thead> -->
+					<tbody>
+						{% for p in parents %}
+						<tr data-pk="{{ p.entry.pk }}"{% if p.entry == child %} class="active"{% endif %}>
+							<td>
+								<a href="{{ p.path }}">{{ p.entry.span }}</a>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+
+	    	</div>
+	    	{% endif %}
+
 	    </div>
 	    <div class="col-9" id="navigation-child">
 
