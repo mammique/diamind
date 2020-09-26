@@ -13,8 +13,18 @@ from core.models import EntryParentThroughModel, Entry
 
 def home(request):
 
+    q = request.GET.get('q')
+    search_results = None
+
+    if q:
+
+        ea = EntryAutocomplete()
+        ea.q = q
+        search_results = ea.get_queryset()
+
     return render(request, 'core/home.html', {'home_entries':   Entry.objects.filter(home=True).order_by('name'),
-                                              'latest_entries': Entry.objects.all().distinct().order_by('-updated_on')[0:12]})
+                                              'latest_entries': Entry.objects.all().distinct().order_by('-updated_on')[0:12],
+                                              'search_results': search_results})
 
 
 def nav(request, path):
@@ -65,7 +75,9 @@ def nav(request, path):
     entry_parent    = None
     previous_parent = None
     entry_root_path = None
+
     for e in path_entries:
+
         if e['entry'] == entry: entry_parent = previous_parent
         if e['entry'] == child: child_parent = previous_parent
 
@@ -189,7 +201,7 @@ class EntryAutocomplete(autocomplete.Select2QuerySetView):
                 if qs_kw == None: qs_kw = qs_parents_name | qs_name | qs_text | qs_file | qs_image
                 else: qs_kw = qs_kw & (qs_name | qs_text | qs_file | qs_image)
 
-            if qs_kw: qs = qs_kw
+            if qs_kw != None: qs = qs_kw
 
         return qs.distinct()
 
