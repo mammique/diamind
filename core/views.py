@@ -61,11 +61,13 @@ def nav(request, path):
     path_e     = reverse('nav', kwargs={'path': path_e})
     path_clean = reverse('nav', kwargs={'path': path_current})
 
-    parent          = None
+    child_parent    = None
+    entry_parent    = None
     previous_parent = None
     entry_root_path = None
     for e in path_entries:
-        if e['entry'] == child: parent = previous_parent
+        if e['entry'] == entry: entry_parent = previous_parent
+        if e['entry'] == child: child_parent = previous_parent
 
         if e['entry'] not in (entry, child,) and previous_parent:
             e['path'] = '%s?e=%s&c=%s' % (path_clean, previous_parent.pk, e['entry'].pk,)
@@ -77,11 +79,11 @@ def nav(request, path):
         if e['entry'] == entry: entry_root_path = path_current[e['path_prev_len']:]
 
     parents = []
-    if parent: parents_exclude = {'pk': parent.pk}
+    if entry_parent: parents_exclude = {'pk': entry_parent.pk}
     else: parents_exclude = {}
 
-    for parent in entry.parents.exclude(**parents_exclude).order_by('name'):
-        parents.append({'entry': parent, 'path': reverse('nav', kwargs={'path': '%s/%s' % (parent.pk, entry_root_path,)}) + '?e=%s&c=%s' % (parent.pk, entry.pk,)})
+    for p in entry.parents.exclude(**parents_exclude).order_by('name'):
+        parents.append({'entry': p, 'path': reverse('nav', kwargs={'path': '%s/%s' % (p.pk, entry_root_path,)}) + '?e=%s&c=%s' % (p.pk, entry.pk,)})
 
     if 'children_position' in request.GET:
 
@@ -114,7 +116,8 @@ def nav(request, path):
                                       'entry_children': entry_children,
                                       'child':          child,
                                       'child_children': child_children,
-                                      'parent':         parent,
+                                      'entry_parent':   entry_parent,
+                                      'child_parent':   child_parent,
                                       'parents':        parents,
                                      })
 

@@ -33,23 +33,10 @@
 		    	<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>{% endif %}
 	    	</div>
 
-
-
 	    	{% if parents %}
 	    	<div>
-	    		
-
 		    	<h5><i class="fas fa-arrow-left"></i> / <i class="far fa-folder-open"></i></h5>
-
-
-
-
 				<table class="table table-bordered entry-list">
-				<!--   <thead>
-				    <tr>
-				      <th><i class="fas fa-arrow-left"></i> / <i class="far fa-folder-open"></i></th>
-				    </tr>
-				  </thead> -->
 					<tbody>
 						{% for p in parents %}
 						<tr data-pk="{{ p.entry.pk }}"{% if p.entry == child %} class="active"{% endif %}>
@@ -60,7 +47,6 @@
 						{% endfor %}
 					</tbody>
 				</table>
-
 	    	</div>
 	    	{% endif %}
 
@@ -70,7 +56,7 @@
 	    	{% if user.is_authenticated %}
 	    	<div id="navigation-child-actions">	
 	    		<a href="{% url 'entry_update' child.pk %}?next={{ path_clean|urlencode }}%3Fe%3D{{ entry.pk }}%26c%3D{{ child.pk }}"><i class="fas fa-edit"></i></a>
-	    		<a href="{% url 'entry_delete' child.pk %}{% if parent %}?next={{ path_clean|urlencode }}%3Fe%3D{{ parent.pk }}{% endif %}"
+	    		<a href="{% url 'entry_delete' child.pk %}{% if child_parent %}?next={{ path_clean|urlencode }}%3Fe%3D{{ child_parent.pk }}{% endif %}"
 	    		   onclick="return false;" ondblclick="document.location = $(this).attr('href');" title="Double-click to delete"><i class="fas fa-trash"></i></a>
 	    	</div>
 	    	{% endif %}
