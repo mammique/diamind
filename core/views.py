@@ -121,23 +121,30 @@ def nav(request, path):
     for e in child.children.all().order_by('parents_through__order', 'children_through__order',): # Quick fix for OrderedModel .distinct() fail.
         if not e in child_children: child_children.append(e)
 
-    return render(request, template, {'path_entries':   path_entries,
-                                      'path_clean':     path_clean,
-                                      'path_entry':     path_e,
-                                      'entry':          entry,
-                                      'entry_children': entry_children,
-                                      'child':          child,
-                                      'child_children': child_children,
-                                      'entry_parent':   entry_parent,
-                                      'child_parent':   child_parent,
-                                      'parents':        parents,
+    return render(request, template, {'path_entries':      path_entries,
+                                      'path_clean':        path_clean,
+                                      'path_entry':        path_e,
+                                      'entry':             entry,
+                                      'entry_children':    entry_children,
+                                      'child':             child,
+                                      'child_children':    child_children,
+                                      'entry_parent':      entry_parent,
+                                      'child_parent':      child_parent,
+                                      'parents':           parents,
+                                      'entry_tags':        entry.tags.all().order_by('name'),
+                                      'entry_tagged_from': entry.tagged_from.all().order_by('name'),
+                                      'child_tags':        child.tags.all().order_by('name'),
+                                      'child_tagged_from': child.tagged_from.all().order_by('name'),
                                      })
 
 
 class EntryForm(ModelForm):
 
-    children = ModelMultipleChoiceField(queryset=Entry.objects.all(), widget=autocomplete.ModelSelect2Multiple(
-                'entry_autocomplete', attrs={'data-html': True},
+    children = ModelMultipleChoiceField(
+                queryset=Entry.objects.all(),
+                required=False,
+                widget=autocomplete.ModelSelect2Multiple(
+                    'entry_autocomplete', attrs={'data-html': True},
             ))
 
     def __init__(self,*args,**kwargs):
@@ -156,11 +163,10 @@ class EntryForm(ModelForm):
     class Meta:
 
         model   = Entry
-        fields  = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'home',)
+        fields  = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'children', 'tags', 'home',)
         widgets = {
-            'parents': autocomplete.ModelSelect2Multiple(
-                'entry_autocomplete', attrs={'data-html': True},
-            )
+            'parents': autocomplete.ModelSelect2Multiple('entry_autocomplete', attrs={'data-html': True}),
+            'tags':    autocomplete.ModelSelect2Multiple('entry_autocomplete', attrs={'data-html': True}),
         }
 
 

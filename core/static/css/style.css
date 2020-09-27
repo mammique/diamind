@@ -64,7 +64,7 @@ html, body, .container-fluid {
 
 .page-home #home-entries-latest {
 	margin-top: 5rem;
-	zoom: 75%;
+	zoom: .75;
 }
 
 .select2-selection--multiple {
@@ -141,11 +141,17 @@ html, body, .container-fluid {
 	margin-bottom: 0;
 }
 
+#navigation-child > a > .img-fluid {
+	margin-right: auto;
+    margin-left: auto;
+    display: block;
+}
+
 .navigation-child-list {
 	border: 0 solid #ddd;
 }
 
-.navigation-child-list > * {
+.navigation-child-list > div {
 	margin-bottom: 3rem;
 }
 
@@ -173,6 +179,37 @@ html, body, .container-fluid {
 	color: black;
 	display: block;
 	text-decoration: none;
+}
+
+.navigation-tags {
+	line-height: 1.7rem;
+}
+
+.navigation-tags > div {
+	display: inline;
+}
+
+.navigation-tags .badge.entry {
+	zoom: .75;
+}
+
+#navigation-child-tags label {
+	margin: 0;
+}
+
+#navigation-child-tags .navigation-tags:first-of-type {
+	margin-bottom: 1rem;
+}
+
+#navigation-child-tags.navigation-child-tags-fixed {
+	position: fixed;
+    bottom: 0;
+    background: white;
+    margin: 0;
+    padding: 1rem;
+    border: 0 solid lightgray;
+    border-width: 1px 0 0 1px;
+    margin-left: -17px;
 }
 
 /*.navigation-child-list .btn {

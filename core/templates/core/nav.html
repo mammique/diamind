@@ -11,13 +11,21 @@
 
 {% block content %}
 
-<div id="navigation">
+<div id="navigation"
+     {% if user.is_authenticated %}
+     ondblclick="document.location = '{% url 'entry_update' child.pk %}?next={{ path_clean|urlencode }}%3Fe%3D{{ entry.pk }}%26c%3D{{ child.pk }}'"
+	 {% endif %}
+     >
 
 	<nav aria-label="breadcrumb">
 	  <ol class="breadcrumb">
 	    <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
 	    {% for e in path_entries %}
+	    {# {% if e.entry == entry %}<span style="background-color: green; padding: 0rem 0.5rem; border-radius: 0.5rem;">{% endif %} #}
+	    {# {% if e.entry == child %}<span style="background-color: red; padding: 0rem 0.5rem; border-radius: 0.5rem;">{% endif %} #}
 	    <li class="breadcrumb-item{% if e.entry == entry %} active{% elif e.entry == child %} active-child{% endif %}"><a href="{{ e.path }}">{{ e.span }}</a></li>
+	    {# {% if e.entry == child %}</span>{% endif %} #}
+	    {# {% if e.entry == entry %}</span>{% endif %} #}
 	    {% endfor %}
 	    <!-- <li class="breadcrumb-item active" aria-current="page">Data</li> -->
 	  </ol>
@@ -27,10 +35,14 @@
 	  <div class="row">
 	    <div class="col-3 navigation-child-list" id="navigation-children">
 
+	    	<h4>{{ entry.name_get_no_name_parent }}
+		    	{% if user.is_authenticated %}
+		    	<a class="btn btn-sm btn-secondary float-right" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>
+		    	{% endif %}
+	    	</h4>
+
 	    	<div>    		
 		    	{% if entry_children %}{% include "core/nav_children.html" %}{% endif %}
-		    	{% if user.is_authenticated %}
-		    	<a class="btn btn-secondary" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>{% endif %}
 	    	</div>
 
 	    	{% if parents %}
@@ -50,12 +62,30 @@
 	    	</div>
 	    	{% endif %}
 
+	    	{% if entry_tags.count %}
+	    	<div class="navigation-tags">
+		    	<h5><i class="fas fa-tags"></i> tags:</h5>
+		    	<div>
+		    	{% for tag in entry_tags.all %}{{ tag.badge }} {% endfor %}
+		    	</div>
+	    	</div>
+	    	{% endif %}
+
+	    	{% if entry_tagged_from.count %}
+	    	<div class="navigation-tags">
+		    	<h5><i class="fas fa-tags"></i> tagged from:</h5>
+		    	<div>
+		    	{% for tag in entry_tagged_from.all %}{{ tag.badge }} {% endfor %}
+		    	</div>
+	    	</div>
+	    	{% endif %}
+
 	    </div>
 	    <div class="col-9" id="navigation-child">
 
 	    	{% if user.is_authenticated %}
 	    	<div id="navigation-child-actions">	
-	    		<a href="{% url 'entry_update' child.pk %}?next={{ path_clean|urlencode }}%3Fe%3D{{ entry.pk }}%26c%3D{{ child.pk }}"><i class="fas fa-edit"></i></a>
+	    		<a href="{% url 'entry_update' child.pk %}?next={{ path_clean|urlencode }}%3Fe%3D{{ entry.pk }}%26c%3D{{ child.pk }}" title="Edit (or double-click on the page)"><i class="fas fa-edit"></i></a>
 	    		<a href="{% url 'entry_delete' child.pk %}{% if child_parent %}?next={{ path_clean|urlencode }}%3Fe%3D{{ child_parent.pk }}{% endif %}"
 	    		   onclick="return false;" ondblclick="document.location = $(this).attr('href');" title="Double-click to delete"><i class="fas fa-trash"></i></a>
 	    	</div>
@@ -84,12 +114,84 @@
 
 			{% if child.image %}<a href="{{ child.image.url }}"><img src="{{ child.image.url }}" class="img-fluid" /></a>{% endif %}
 
+	    	{% if entry != child  %}
+		    	{% if child_tags.count or child_tagged_from.count %}
+		    		<div id="navigation-child-tags">
+				    	{% if child_tags.count %}
+				    	<div class="navigation-tags">
+					    	<label><i class="fas fa-tags"></i> tags:</label>
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+					    	{% for tag in child_tags.all %}{{ tag.badge }} {% endfor %}
+				    	</div>
+				    	{% endif %}
+
+				    	{% if child_tagged_from.count %}
+				    	<div class="navigation-tags">
+					    	<label><i class="fas fa-tags"></i> tagged from:</label>
+					    	{% for tag in child_tagged_from.all %}{{ tag.badge }} {% endfor %}
+				    	</div>
+				    	{% endif %}
+		    		</div>
+		    	{% endif %}
+	    	{% endif %}
+
 	    </div>
 	    <!-- <div class="col-2 navigation-child-list" id="navigation-child-children"></div> -->
 	  </div>
 	</div>
 
 </div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	var ﻿nc  = $('#navigation-child');
+	var ﻿nct = $('#navigation-child-tags');
+
+	function nct_refresh() {
+		if (nc[0].scrollHeight > nc.height()+1 && !nc.scrollTop()) {
+
+			if($('.navigation-child-tags-fixed').length) return;
+
+			var nct_top = nct.clone();
+			nct_top.addClass('navigation-child-tags-fixed');
+			nct.css('visibility', 'hidden');
+			nc.append(nct_top);
+
+		} else {
+
+			$('.navigation-child-tags-fixed').remove();
+			nct.css('visibility', 'visible');
+		}
+	}
+
+	nct_refresh();
+
+	nc.scroll(function(e) { nct_refresh(); });
+	$( window ).resize(function() { nct_refresh(); });
+
+});
+
+</script>
 
 {% include "core/bootstrap_table_reorder.html" %}
 

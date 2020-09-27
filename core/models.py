@@ -37,6 +37,7 @@ class Entry(models.Model):
     date        = models.DateTimeField(auto_now_add=True)
     updated_on  = models.DateTimeField(auto_now=True)
     parents     = models.ManyToManyField('self', related_name="children", symmetrical=False, blank=True, through='EntryParentThroughModel', through_fields=('child', 'parent'),)
+    tags        = models.ManyToManyField('self', related_name="tagged_from", symmetrical=False, blank=True,)
 
     order_with_respect_to = 'pk'
 
