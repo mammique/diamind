@@ -86,6 +86,7 @@
 	    	{% if user.is_authenticated %}
 	    	<div id="navigation-child-actions">	
 	    		<a href="{% url 'entry_update' child.pk %}?next={{ path_clean|urlencode }}%3Fe%3D{{ entry.pk }}%26c%3D{{ child.pk }}" title="Edit (or double-click on the page)"><i class="fas fa-edit"></i></a>
+		    	<!-- <a href="{% url 'entry_create' %}?parent={{ child.pk }}&?next={{ path_clean|urlencode }}"><i class="fas fa-plus-square"></i></a> -->
 	    		<a href="{% url 'entry_delete' child.pk %}{% if child_parent %}?next={{ path_clean|urlencode }}%3Fe%3D{{ child_parent.pk }}{% endif %}"
 	    		   onclick="return false;" ondblclick="document.location = $(this).attr('href');" title="Double-click to delete"><i class="fas fa-trash"></i></a>
 	    	</div>
