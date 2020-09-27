@@ -62,6 +62,10 @@ html, body, .container-fluid {
 	margin-top: 1rem;
 }
 
+.page-home #home-entry-create {
+	margin-top: 0;
+}
+
 .page-home #home-entries-latest {
 	margin-top: 5rem;
 }
