@@ -130,6 +130,9 @@ USE_TZ = True
 
 MARKDOWNX_MARKDOWN_EXTENSIONS = [
     'markdown.extensions.extra',
+    'markdown.extensions.nl2br',
+    'pyembed.markdown',
+    # 'mdx_oembed',
     'pymdownx.magiclink',
 ]
 

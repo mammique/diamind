@@ -5,7 +5,7 @@
 {% block head_extra %}
 {% endblock %}
 
-{% block title %}{{ entry.name_get }}{% if entry != child %} → {% if child.name_parent != entry %}{{ child.name_get }}{% else %}{{ child.name_get_no_name_parent }}{% endif %}{% endif %}{% endblock %}
+{% block title %}{{ entry.name_get }}{% if entry != child %} → {% if child.name_prefix != entry %}{{ child.name_get }}{% else %}{{ child.name_get_no_name_prefix }}{% endif %}{% endif %}{% endblock %}
 
 {% block content_classes %} page-navigation{% endblock %}
 
@@ -35,7 +35,7 @@
 	  <div class="row">
 	    <div class="col-3 navigation-child-list" id="navigation-children">
 
-	    	<h4>{{ entry.name_get_no_name_parent }}
+	    	<h4>{{ entry.name_get_no_name_prefix }}
 		    	{% if user.is_authenticated %}
 		    	<a class="btn btn-sm btn-secondary float-right" href="{% url 'entry_create' %}?parent={{ entry.pk }}&next={{ path_entry|urlencode }}"><i class="fas fa-plus"></i></a>
 		    	{% endif %}
@@ -45,15 +45,15 @@
 		    	{% if entry_children %}{% include "core/nav_children.html" %}{% endif %}
 	    	</div>
 
-	    	{% if parents %}
+	    	{% if entry_parents %}
 	    	<div>
-		    	<h5><i class="fas fa-arrow-left"></i> / <i class="far fa-folder-open"></i></h5>
+		    	<!-- <h5><i class="fas fa-random fa-mirror"></i> / <i class="far fa-folder-open"></i> other parents:</h5> -->
 				<table class="table table-bordered entry-list">
 					<tbody>
-						{% for p in parents %}
+						{% for p in entry_parents %}
 						<tr data-pk="{{ p.entry.pk }}"{% if p.entry == child %} class="active"{% endif %}>
 							<td>
-								<a href="{{ p.path }}">{{ p.entry.span }}</a>
+								<a href="{{ p.path }}"><i class="fas fa-random fa-mirror"></i>&nbsp;<i class="far fa-folder-open"></i> {{ p.entry.span }}</a>
 							</td>
 						</tr>
 						{% endfor %}
@@ -92,7 +92,12 @@
 	    	</div>
 	    	{% endif %}
 
-	    	{% if child.name.strip != '' %}<h1>{{ child.name }}</h1>{% endif %}
+	    	{% if child.name.strip != '' %}
+	    		<h1>{{ child.name }}</h1>
+	    		{% if child.aka.strip != '' %}
+	    			<h2>{{ child.aka }}</h2>
+	    		{% endif %}
+	    	{% endif %}
 
 	    	{% if child.text.strip != '' %}
 	    	<div id="navigation-child-markdown">
@@ -116,8 +121,17 @@
 			{% if child.image %}<a href="{{ child.image.url }}"><img src="{{ child.image.url }}" class="img-fluid" /></a>{% endif %}
 
 	    	{% if entry != child  %}
+		    	{# {% if child_parents.count or child_tags.count or child_tagged_from.count %} #}
 		    	{% if child_tags.count or child_tagged_from.count %}
 		    		<div id="navigation-child-tags">
+
+				    	{# {% if child_parents.count %} #}
+				    	{# <div class="navigation-tags"> #}
+					    {# 	<label><i class="fas fa-arrow-left"></i> / <i class="far fa-folder-open"></i> parents:</label> #}
+					    {# 	{% for tag in child_parents.all %}{{ tag.badge }} {% endfor %} #}
+				    	{# </div> #}
+				    	{# {% endif %} #}
+
 				    	{% if child_tags.count %}
 				    	<div class="navigation-tags">
 					    	<label><i class="fas fa-tags"></i> tags:</label>

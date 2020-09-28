@@ -50,8 +50,8 @@ def nav(request, path):
 
             if not path_entry: continue
 
-            if path_entry.name_parent and path_entry.name_parent in entries_raw:
-                span = path_entry.span_no_name_parent()
+            if path_entry.name_prefix and path_entry.name_prefix in entries_raw:
+                span = path_entry.span_no_name_prefix()
             else: span = path_entry.span()
 
             path_entries.append({'entry': path_entry, 'span': span, 'path': path_current, 'path_prev_len': path_prev_len})
@@ -75,11 +75,17 @@ def nav(request, path):
     entry_parent    = None
     previous_parent = None
     entry_root_path = None
+    child_root_path = None
 
     for e in path_entries:
 
-        if e['entry'] == entry: entry_parent = previous_parent
-        if e['entry'] == child: child_parent = previous_parent
+        if e['entry'] == entry:
+            entry_parent = previous_parent
+            entry_root_path = path_current[e['path_prev_len']:]
+
+        elif e['entry'] == child:
+            child_parent = previous_parent
+            child_root_path = path_current[e['path_prev_len']:]
 
         if e['entry'] not in (entry, child,) and previous_parent:
             e['path'] = '%s?e=%s&c=%s' % (path_clean, previous_parent.pk, e['entry'].pk,)
@@ -88,14 +94,22 @@ def nav(request, path):
 
         previous_parent = e['entry']
 
-        if e['entry'] == entry: entry_root_path = path_current[e['path_prev_len']:]
 
-    parents = []
-    if entry_parent: parents_exclude = {'pk': entry_parent.pk}
-    else: parents_exclude = {}
+    entry_parents = []
+    if entry_parent: entry_parents_exclude = {'pk': entry_parent.pk}
+    else: entry_parents_exclude = {}
+    # entry_parents_exclude = {}
 
-    for p in entry.parents.exclude(**parents_exclude).order_by('name'):
-        parents.append({'entry': p, 'path': reverse('nav', kwargs={'path': '%s/%s' % (p.pk, entry_root_path,)}) + '?e=%s&c=%s' % (p.pk, entry.pk,)})
+    for p in entry.parents.exclude(**entry_parents_exclude).order_by('name'):
+        entry_parents.append({'entry': p, 'path': reverse('nav', kwargs={'path': '%s/%s' % (p.pk, entry_root_path,)}) + '?e=%s&c=%s' % (p.pk, entry.pk,)})
+
+    child_parents = []
+    if child_parent: child_parents_exclude = {'pk': child_parent.pk}
+    else: child_parents_exclude = {}
+    # child_parents_exclude = {}
+
+    for p in child.parents.exclude(**child_parents_exclude).order_by('name'):
+        child_parents.append({'entry': p, 'path': reverse('nav', kwargs={'path': '%s/%s' % (p.pk, child_root_path,)}) + '?e=%s&c=%s' % (p.pk, entry.pk,)})
 
     if 'children_position' in request.GET:
 
@@ -130,9 +144,10 @@ def nav(request, path):
                                       'child_children':    child_children,
                                       'entry_parent':      entry_parent,
                                       'child_parent':      child_parent,
-                                      'parents':           parents,
+                                      'entry_parents':     entry_parents,
                                       'entry_tags':        entry.tags.all().order_by('name'),
                                       'entry_tagged_from': entry.tagged_from.all().order_by('name'),
+                                      'child_parents':     child_parents,
                                       'child_tags':        child.tags.all().order_by('name'),
                                       'child_tagged_from': child.tagged_from.all().order_by('name'),
                                      })
@@ -154,16 +169,16 @@ class EntryForm(ModelForm):
         instance = getattr(self, 'instance', None)
 
         if instance and instance.pk:
-            name_parent_qs = instance.parents
+            name_prefix_qs = instance.parents.all() | instance.tags.all()
             self.fields['children'].initial = instance.children.all()
-        else: name_parent_qs = Entry.objects.none()
+        else: name_prefix_qs = Entry.objects.none()
 
-        self.fields['name_parent'].queryset = name_parent_qs
+        self.fields['name_prefix'].queryset = name_prefix_qs.distinct()
 
     class Meta:
 
         model   = Entry
-        fields  = ('name', 'name_parent', 'text' ,'file', 'image', 'parents', 'children', 'tags', 'home',)
+        fields  = ('name', 'name_prefix', 'aka', 'text' ,'file', 'image', 'parents', 'children', 'tags', 'home',)
         widgets = {
             'parents': autocomplete.ModelSelect2Multiple('entry_autocomplete', attrs={'data-html': True}),
             'tags':    autocomplete.ModelSelect2Multiple('entry_autocomplete', attrs={'data-html': True}),
@@ -172,13 +187,13 @@ class EntryForm(ModelForm):
 
 class EntryParentForm(ModelForm):
 
-    name_parent_bool = BooleanField(required=False, label="Parent name prefix",
-                                    help_text="Use parent's name as prefix when displayed out of context.")
+    name_prefix_bool = BooleanField(required=False, label="Entry name prefix",
+                                    help_text="Use parent/tag entry's name as prefix when displayed out of context.")
 
     class Meta:
 
         model  = Entry
-        fields = ('name', 'name_parent_bool', 'text' ,'file', 'image', 'home',)
+        fields = ('name', 'name_prefix_bool', 'aka', 'text' ,'file', 'image', 'home',)
 
 
 class EntryAutocomplete(autocomplete.Select2QuerySetView):
@@ -199,13 +214,15 @@ class EntryAutocomplete(autocomplete.Select2QuerySetView):
                 if kw == '': continue            
 
                 qs_parents_name = qs.filter(parents__name__icontains=kw)
+                qs_parents_aka  = qs.filter(parents__aka__icontains=kw)
                 qs_name         = qs.filter(name__icontains=kw)
+                qs_aka          = qs.filter(aka__icontains=kw)
                 qs_text         = qs.filter(text__icontains=kw)
                 qs_file         = qs.filter(file__icontains=kw)
                 qs_image        = qs.filter(image__icontains=kw)
 
-                if qs_kw == None: qs_kw = qs_parents_name | qs_name | qs_text | qs_file | qs_image
-                else: qs_kw = qs_kw & (qs_name | qs_text | qs_file | qs_image)
+                if qs_kw == None: qs_kw = qs_parents_name | qs_parents_aka | qs_name | qs_aka | qs_text | qs_file | qs_image
+                else: qs_kw = qs_kw & (qs_parents_name | qs_parents_aka | qs_name | qs_aka | qs_text | qs_file | qs_image)
 
             if qs_kw != None: qs = qs_kw
 
@@ -239,9 +256,9 @@ def entry_create(request):
 
             if parent: entry.parents.add(parent)
 
-            if 'name_parent_bool' in request.POST:
+            if 'name_prefix_bool' in request.POST:
 
-                entry.name_parent = parent
+                entry.name_prefix = parent
                 entry.save()
 
             if parent and nxt != None:

@@ -21,14 +21,15 @@ class EntryParentThroughModel(OrderedModel):
 
     def __str__(self):
         return 'Parent: %s (%s) - Child: %s (%s)' % \
-            (self.parent.name_get_no_name_parent(), self.parent.pk, self.child.name_get_no_name_parent(), self.child.pk)
+            (self.parent.name_get_no_name_prefix(), self.parent.pk, self.child.name_get_no_name_prefix(), self.child.pk)
 
 
 class Entry(models.Model):
 
     name        = models.CharField(max_length=64, blank=True)
-    name_parent = models.ForeignKey('self', verbose_name="Parent name prefix",
-                                    help_text="Use this parent's name as prefix when displayed out of context.",
+    aka         = models.CharField('a.k.a', max_length=256, blank=True)
+    name_prefix = models.ForeignKey('self', verbose_name="Entry name prefix",
+                                    help_text="Use this parent/tag entry's name as prefix when displayed out of context.",
                                     null=True, blank=True, on_delete=models.SET_NULL, related_name="children_using_name")
     text        = MarkdownxField(blank=True)
     file        = models.FileField(upload_to='file', blank=True)
@@ -56,7 +57,7 @@ class Entry(models.Model):
         t = Template("""<a class="badge badge-secondary entry" href="%s">%s</a>""" % (self.url_path(), self.span()))
         return t.render(TemplateContext({'entry': self}))
 
-    def span(self, name_parent=True):
+    def span(self, name_prefix=True):
 
         if self.image:
             img = """{% load responsive_images %}<img src="{% src entry.image 32x24 nocrop %}" />&nbsp;"""
@@ -65,13 +66,13 @@ class Entry(models.Model):
 
         t = Template("""<span>%s{{ name }}</span>""" % img)
 
-        return t.render(TemplateContext({'entry': self, 'name': self.name_get(name_parent=name_parent)}))
+        return t.render(TemplateContext({'entry': self, 'name': self.name_get(name_prefix=name_prefix)}))
 
-    def span_no_name_parent(self): return self.span(name_parent=False)
+    def span_no_name_prefix(self): return self.span(name_prefix=False)
 
     def url_path(self): return reverse('nav', args=('%s/'%self.pk,))
 
-    def name_get(self, name_parent=True):
+    def name_get(self, name_prefix=True):
 
         name_strip = self.name.strip()
         text_strip = self.text.strip()
@@ -82,12 +83,12 @@ class Entry(models.Model):
             if len(name) != len(text_strip): name = '%s…' % name
         else: name = '∅'
 
-        if name_parent and self.name_parent:
-            name = '%s: %s' % (self.name_parent.name_get(), name,)
+        if name_prefix and self.name_prefix:
+            name = '%s: %s' % (self.name_prefix.name_get(), name,)
 
         return name
 
-    def name_get_no_name_parent(self): return self.name_get(name_parent=False)
+    def name_get_no_name_prefix(self): return self.name_get(name_prefix=False)
 
     def __str__(self): return self.name_get()
 
