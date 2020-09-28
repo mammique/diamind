@@ -227,7 +227,7 @@ html, body, .container-fluid {
 	line-height: 20px;
 }
 
-.navigation-tags  .badge.entry img {
+.navigation-tags .badge.entry img {
 	max-height: 18px;
 }
 
@@ -250,6 +250,11 @@ html, body, .container-fluid {
     margin-left: -17px;
 }
 
+/*#navigation-children {
+	background-color: #b4d8ff;
+    padding-top: 1rem !important;
+}
+*/
 /*.navigation-child-list .btn {
 	width: 100%;
 }*/
@@ -270,6 +275,11 @@ html, body, .container-fluid {
 
 .entry-list .entry-list-container .entry-list:first-child {
 	margin-top: 0;
+}
+
+.entry-list .fa-plus-square {
+	float: right;
+	margin-top: -22px;
 }
 
 /*.entry-list .entry-list-container h6 {
