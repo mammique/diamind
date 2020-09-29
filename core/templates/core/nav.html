@@ -17,18 +17,23 @@
 	 {% endif %}
      >
 
-	<nav aria-label="breadcrumb">
-	  <ol class="breadcrumb">
-	    <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
-	    {% for e in path_entries %}
-	    {# {% if e.entry == entry %}<span style="background-color: green; padding: 0rem 0.5rem; border-radius: 0.5rem;">{% endif %} #}
-	    {# {% if e.entry == child %}<span style="background-color: red; padding: 0rem 0.5rem; border-radius: 0.5rem;">{% endif %} #}
-	    <li class="breadcrumb-item{% if e.entry == entry %} active{% elif e.entry == child %} active-child{% endif %}"><a href="{{ e.path }}">{{ e.span }}</a></li>
-	    {# {% if e.entry == child %}</span>{% endif %} #}
-	    {# {% if e.entry == entry %}</span>{% endif %} #}
-	    {% endfor %}
-	    <!-- <li class="breadcrumb-item active" aria-current="page">Data</li> -->
-	  </ol>
+	<nav class="navbar navbar-expand-md navbar-dark indigo mb-5">
+	  <div class="mr-auto">
+	    <nav aria-label="breadcrumb">
+	      <!-- <ol class="breadcrumb clearfix d-none d-md-inline-flex pt-0" style="background-color: transparent !important;"> -->
+	      <ol class="breadcrumb" style="">
+		    <li class="breadcrumb-item"><a href="/"><i class="fas fa-home"></i></a></li>
+		    {% for e in path_entries %}
+		    <li class="breadcrumb-item{% if e.entry == entry %} active{% elif e.entry == child %} active-child{% endif %}"><a href="{{ e.path }}">{{ e.span }}</a></li>
+		    {% endfor %}
+	      </ol>
+	    </nav>
+	  </div>
+	  <form class="form-inline" method="GET" action="{% url 'home' %}">
+	    <input class="form-control form-control-sm mr-sm-1" type="text" name="q" placeholder="Search" aria-label="Search" />
+	    <button class="btn btn-sm btn-secondary mr-sm-1" type="submit"><i class="fas fa-search"></i></button>
+	    <a class="btn btn-sm btn-secondary mr-sm-3" href="{% url 'entry_create' %}"><i class="fas fa-plus"></i></a>
+	  </form>
 	</nav>
 
 	<div id="navigation-horiz">

@@ -187,8 +187,8 @@ class EntryForm(ModelForm):
 
 class EntryParentForm(ModelForm):
 
-    name_prefix_bool = BooleanField(required=False, label="Entry name prefix",
-                                    help_text="Use parent/tag entry's name as prefix when displayed out of context.")
+    name_prefix_bool = BooleanField(required=False, label="Parent name prefix",
+                                    help_text="Use parent's name as prefix when displayed out of context.")
 
     class Meta:
 

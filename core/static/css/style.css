@@ -4,6 +4,10 @@ html, body, .container-fluid {
 	margin: 0;
 }
 
+a.btn i {
+	color: white;
+}
+
 .container-fluid > * {
 	margin: 1.5rem 2rem;
 }
@@ -100,9 +104,18 @@ html, body, .container-fluid {
 	/*padding-top: 3rem;*/
 }
 
-#navigation nav {
+#navigation nav.navbar {
 	position: absolute;
 	width: 100%;
+	padding: 0;
+	background-color: #e9ecef;
+	height: 3rem;
+}
+
+#navigation nav.navbar ol.breadcrumb {
+	background-color: transparent;
+	height: 2rem;
+	margin-top: 0.3rem;
 }
 
 #navigation nav a {
