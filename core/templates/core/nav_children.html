@@ -1,0 +1,73 @@
+<table class="table table-bordered entry-list{% if user.is_authenticated %} bootstrap-table-reorder-ajax bootstrap-table-reorder-ajax{% endif %}"
+       {% if user.is_authenticated %}
+       data-reorderable-rows="true"
+       data-use-row-attr-func="true"
+       data-reorderable-ajax-url="{{ path_clean }}?e={{ entry.pk }}&c={{ child.pk }}&children&children_position="
+       title="Drag'n drop rows to reorder."
+       {% endif %}>
+  <thead>
+    <tr>
+      <th data-field="id">Inherited from</th>
+    </tr>
+  </thead>
+	<tbody>
+		{% for c in entry_children %}
+		<tr data-pk="{{ c.pk }}"{% if c == child %} class="active"{% endif %}>
+			<td>
+				<!-- <a href="{{ path_clean }}?e={{ entry.pk }}&c={{ c.pk }}">{{ c.span }}</a> -->
+				<a href="{{ path_entry }}{{ c.pk }}/?e={{ entry.pk }}&c={{ c.pk }}">
+				{% if c.children.all.count %}<i class="far fa-folder{% if c == child %}-open{% endif %}"></i>{% endif %}
+				{% if c.name_prefix == entry %}{{ c.span_no_name_prefix }}{% else %}{{ c.span }}{% endif %}
+				</a>
+				{% if user.is_authenticated and c == child %}
+				<a href="{% url 'entry_create' %}?parent={{ child.pk }}&next={{ path_clean|urlencode }}"><i class="fas fa-plus-square"></i></a>
+				{% endif %}
+
+		    	{% if c == child %}
+
+		    		{% if child_children or child_parents %}
+				    <div class="entry-list-container">
+				    {% endif %}
+
+				    	{% if child_children %}
+							<table class="table table-bordered entry-list">
+								<tbody>
+									{% for cc in child_children %}
+									<tr data-pk="{{ cc.pk }}">
+										<td>
+											<a href="{{ path_entry }}{{ child.pk }}/{{ cc.pk }}/?e={{ child.pk }}&c={{ cc.pk }}">
+											{% if cc.children.all.count %}<i class="far fa-folder"></i>{% endif %}
+											{% if cc.name_prefix == child %}{{ cc.span_no_name_prefix }}{% else %}{{ cc.span }}{% endif %}
+											</a>
+										</td>
+									</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+				    	{% endif %}
+
+				    	{% if child_parents %}
+					    	<!-- <h6><i class="fas fa-random fa-mirror"></i> / <i class="far fa-folder-open"></i> other parents:</h6> -->
+							<table class="table table-bordered entry-list">
+								<tbody>
+									{% for p in child_parents %}
+									<tr data-pk="{{ p.entry.pk }}"{% if p.entry == child %} class="active"{% endif %}>
+										<td>
+											<a href="{{ p.path }}"><i class="fas fa-random fa-mirror"></i>&nbsp;<i class="far fa-folder-open"></i> {{ p.entry.span }}</a>
+										</td>
+									</tr>
+									{% endfor %}
+								</tbody>
+							</table>
+				    	{% endif %}
+
+		    		{% if child_children or child_parents %}
+				    </div>
+				    {% endif %}
+
+		    	{% endif %}
+			</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>

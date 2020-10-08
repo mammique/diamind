@@ -9,12 +9,12 @@
 
 {% if parent %}<h2>Parent: {{ parent.span }}</h2>{% endif %}
 
-<form method="post" enctype="multipart/form-data" action=".">
+<form method="post" enctype="multipart/form-data" action="." ondblclick="this.submit();">
 {% csrf_token %}
 {% if parent %}<input type="hidden" name="parent" value="{{ parent.pk }}" />{% endif %}
 {% bootstrap_form form layout='horizontal' %}
 <input class="col" type="hidden" name="next" value="{{ next }}">
-{% bootstrap_button form_action button_type="submit" button_class="btn-primary" %}
+{% bootstrap_button form_action button_type="submit" button_class="btn-primary" title="Or double-click on the form." %}
 </form>
 {{ form.media }}
 

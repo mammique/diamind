@@ -27,7 +27,7 @@ def home(request):
                                               'search_results': search_results})
 
 
-def nav(request, path):
+def nav(request, path, slide=False):
 
     path_entries = []
     entries_raw  = []
@@ -46,9 +46,11 @@ def nav(request, path):
             path_prev_len = len(path_current)
 
             path_current = '%s%s/' % (path_current, pk)
-            path_entry   = Entry.objects.filter(pk=pk).last()
 
-            if not path_entry: continue
+            if not len(path_entries): q = Entry.objects
+            else: q = path_entries[-1]['entry'].children
+
+            path_entry = get_object_or_404(q, pk=pk)
 
             if path_entry.name_prefix and path_entry.name_prefix in entries_raw:
                 span = path_entry.span_no_name_prefix()
@@ -62,20 +64,27 @@ def nav(request, path):
                 entry  = path_entry
                 path_e = path_current
 
-            elif path_entry.pk == child_pk: child = path_entry
+            elif path_entry.pk == child_pk and entry and entry.children.filter(pk=path_entry.pk).count(): child = path_entry
 
     if not entry:  entry  = path_entries[-1]['entry']
     if not path_e: path_e = path_entries[-1]['path']
     if not child:  child  = entry
 
-    path_e     = reverse('nav', kwargs={'path': path_e})
-    path_clean = reverse('nav', kwargs={'path': path_current})
+    path_e     = reverse('nav',   kwargs={'path': path_e})
+    path_clean = reverse('nav',   kwargs={'path': path_current})
+    path_nav   = path_clean
+    path_slide = reverse('slide', kwargs={'path': path_current})
 
-    child_parent    = None
-    entry_parent    = None
-    previous_parent = None
-    entry_root_path = None
-    child_root_path = None
+    if request.META['QUERY_STRING'] != '':
+        path_nav   = '%s?%s' % (path_nav,   request.META['QUERY_STRING'],)
+        path_slide = '%s?%s' % (path_slide, request.META['QUERY_STRING'],)
+
+    child_parent          = None
+    entry_parent          = None
+    previous_parent       = None
+    entry_root_path       = None
+    child_root_path       = None
+    path_entries_to_child = []
 
     for e in path_entries:
 
@@ -86,6 +95,9 @@ def nav(request, path):
         elif e['entry'] == child:
             child_parent = previous_parent
             child_root_path = path_current[e['path_prev_len']:]
+
+        if e['entry'] == child:
+            path_entries_to_child = path_entries[0:path_entries.index(e)+1]
 
         if e['entry'] not in (entry, child,) and previous_parent:
             e['path'] = '%s?e=%s&c=%s' % (path_clean, previous_parent.pk, e['entry'].pk,)
@@ -125,6 +137,9 @@ def nav(request, path):
             instance_1_through.below(instance_2_through)
 
     if 'children' in request.GET: template = 'core/nav_children.html'
+    elif slide:
+        if 'entry_content' in request.GET: template = 'core/entry_content.html'
+        else: template = 'core/slide.html'
     else: template = 'core/nav.html'
 
     entry_children = []
@@ -135,22 +150,92 @@ def nav(request, path):
     for e in child.children.all().order_by('parents_through__order', 'children_through__order',): # Quick fix for OrderedModel .distinct() fail.
         if not e in child_children: child_children.append(e)
 
-    return render(request, template, {'path_entries':      path_entries,
-                                      'path_clean':        path_clean,
-                                      'path_entry':        path_e,
-                                      'entry':             entry,
-                                      'entry_children':    entry_children,
-                                      'child':             child,
-                                      'child_children':    child_children,
-                                      'entry_parent':      entry_parent,
-                                      'child_parent':      child_parent,
-                                      'entry_parents':     entry_parents,
-                                      'entry_tags':        entry.tags.all().order_by('name'),
-                                      'entry_tagged_from': entry.tagged_from.all().order_by('name'),
-                                      'child_parents':     child_parents,
-                                      'child_tags':        child.tags.all().order_by('name'),
-                                      'child_tagged_from': child.tagged_from.all().order_by('name'),
-                                     })
+    entry_next = {}
+
+    if slide:
+
+        tree_root_entry           = path_entries[0]['entry']
+        tree_entries              = {tree_root_entry}
+        tree_entries_flat         = []
+        path_entries_to_child_raw = list(map(lambda x: x['entry'], path_entries_to_child))
+
+        def tree_rec(e, l=[]):
+
+            l.append(e)
+            tree_entries_flat.append(l)
+
+            q = e.children.all().order_by('parents_through__order', 'children_through__order',)
+
+            if not q.count(): return
+
+            appended = [] # Quick fix for OrderedModel .distinct() fail.
+
+            for c in q:
+                if c in appended: continue
+                appended.append(c)
+                # new = not c in tree_entries
+                # tree_entries.add(c)
+                # if new: tree_rec(c, l.copy())
+                tree_rec(c, l.copy())
+
+        tree_rec(tree_root_entry)
+
+        # def tree_rec(e, l=[]):
+
+        #     tree_entries_flat.append(l)
+
+        #     q = e.children.all().order_by('parents_through__order', 'children_through__order',)
+
+        #     appended = [] # Quick fix for OrderedModel .distinct() fail.
+
+        #     for c in q:
+        #         if c in appended: continue
+        #         appended.append(c)
+        #         l_new = l.copy()
+        #         l_new.append(c)
+        #         tree_rec(c, l_new)
+
+        # tree_rec(tree_root_entry, [tree_root_entry])
+
+        entry_next_index = tree_entries_flat.index(path_entries_to_child_raw)+1
+        if entry_next_index < len(tree_entries_flat): entry_next_list = tree_entries_flat[entry_next_index]
+        else: entry_next_list = None
+
+        i = 0
+        for e in tree_entries_flat: 
+            print(i, e)
+            i += 1
+
+        print(entry_next_index)
+
+        if entry_next_list:
+            entry_next_path = '/'.join(map(lambda x: str(x.pk), entry_next_list))
+            entry_next_path = reverse('slide', kwargs={'path': entry_next_path})
+            entry_next_path = '%s/?e=%s' % (entry_next_path, entry_next_list[-1].pk,)
+            entry_next      = {'path': entry_next_path}
+
+    context = {'slide':             slide,
+               'path_entries':      path_entries,
+               'path_clean':        path_clean,
+               'path_nav':          path_nav,
+               'path_slide':        path_slide,
+               'path_entry':        path_e,
+               'entry':             entry,
+               'entry_children':    entry_children,
+               'child':             child,
+               'child_children':    child_children,
+               'entry_parent':      entry_parent,
+               'child_parent':      child_parent,
+               'entry_parents':     entry_parents,
+               'entry_tags':        entry.tags.all().order_by('name'),
+               'entry_tagged_from': entry.tagged_from.all().order_by('name'),
+               'child_parents':     child_parents,
+               'child_tags':        child.tags.all().order_by('name'),
+               'child_tagged_from': child.tagged_from.all().order_by('name'),
+               'entry_next':        entry_next,
+              }
+
+    return render(request, template, context)
 
 
 class EntryForm(ModelForm):
@@ -215,14 +300,16 @@ class EntryAutocomplete(autocomplete.Select2QuerySetView):
 
                 qs_parents_name = qs.filter(parents__name__icontains=kw)
                 qs_parents_aka  = qs.filter(parents__aka__icontains=kw)
+                qs_tags_name    = qs.filter(tags__name__icontains=kw)
+                qs_tags_aka     = qs.filter(tags__aka__icontains=kw)
                 qs_name         = qs.filter(name__icontains=kw)
                 qs_aka          = qs.filter(aka__icontains=kw)
                 qs_text         = qs.filter(text__icontains=kw)
                 qs_file         = qs.filter(file__icontains=kw)
                 qs_image        = qs.filter(image__icontains=kw)
 
-                if qs_kw == None: qs_kw = qs_parents_name | qs_parents_aka | qs_name | qs_aka | qs_text | qs_file | qs_image
-                else: qs_kw = qs_kw & (qs_parents_name | qs_parents_aka | qs_name | qs_aka | qs_text | qs_file | qs_image)
+                if qs_kw == None: qs_kw = qs_parents_name | qs_parents_aka | qs_tags_name | qs_tags_aka | qs_name | qs_aka | qs_text | qs_file | qs_image
+                else: qs_kw = qs_kw & (qs_parents_name | qs_parents_aka | qs_tags_name | qs_tags_aka | qs_name | qs_aka | qs_text | qs_file | qs_image)
 
             if qs_kw != None: qs = qs_kw
 

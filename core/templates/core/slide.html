@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block head_extra %}
+{% endblock %}
+
+{% block title %}Slideshow - {{ entry.name_get }}{% endblock %}
+
+{% block content_classes %} page-slideshow{% endblock %}
+
+{% block content %}
+
+<div class="alert alert-secondary" role="alert">You are in slideshow mode, press Enter to go back to navigation.</div>
+
+{% include "core/entry_content.html" %}
+
+<div id="spinner" style="display: none;">
+<div class="spinner-border" role="status">
+  <span class="sr-only">Loading...</span>
+</div>
+</div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+
+	var spinner = $('#spinner');
+
+	function next_slide() {
+
+		if(spinner.is(":visible")) return;
+
+		spinner.show();
+
+		var last      = $('.entry-content').last();
+		var next_path = last.data('next-path');
+
+		if(!next_path) return;
+
+		$.ajax({
+		  url:    next_path,
+		  data:   {'entry_content': true},
+		  method: 'GET'
+		}).done(function(response) {
+			last.after(response);
+			spinner.hide();
+			$("html, body").animate({ scrollTop: $(document).height() }, 1000);
+			$('.entry-content').removeClass('entry-content-last');
+			$('.entry-content').last().addClass('entry-content-last');
+		});
+	}
+
+	$('.entry-content').last().addClass('entry-content-last');
+
+	document.onkeydown = function(evt) {
+	    if (evt.key === 'Enter') {
+	    	window.location = '{{ path_nav|safe }}';
+	    }
+	    else if (evt.key === 'ArrowDown') {
+	    	next_slide();
+	    }
+	};
+
+	setTimeout(function() { $('.alert-secondary').fadeOut(1000); }, 3000)
+});
+
+</script>
+
+{% endblock %}

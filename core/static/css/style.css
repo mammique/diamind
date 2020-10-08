@@ -154,39 +154,39 @@ a.btn i {
     height: inherit;
 }
 
-#navigation-child > * {
+.entry-content > * {
 	margin-bottom: 2rem;
 	display: block;
 }
 
-#navigation-child h2 {
+.entry-content h2.aka {
 	color: #bbb;
 	font-style: italic;
 	margin-top: -2rem;
 	font-size: 1.5rem;
 }
 
-#navigation-child #navigation-child-actions {
+.entry-content #navigation-child-actions {
 	float: right;
 }
 
-#navigation-child #navigation-child-actions a {
+.entry-content #navigation-child-actions a {
 	color: black;
 }
 
-#navigation-child iframe {
+.entry-content iframe {
 	margin-bottom: 1rem;
 }
 
-#navigation-child #navigation-child-file > * {
+.entry-content .entry-content-file > * {
 	margin-bottom: 0.5rem;
 	display: block;
 }
-#navigation-child #navigation-child-file > *:last-child {
+.entry-content .entry-content-file > *:last-child {
 	margin-bottom: 0;
 }
 
-#navigation-child > a > .img-fluid {
+.entry-content > a > .img-fluid {
 	margin-right: auto;
     margin-left: auto;
     display: block;
@@ -305,4 +305,21 @@ a.btn i {
 .badge.entry {
 	font-size: 16px;
 	line-height: 26px;
+}
+
+.page-slideshow {
+	font-size: 200%;
+}
+
+.page-slideshow .entry-content-last {
+	margin-bottom: 50vh;
+}
+
+#spinner {
+	text-align: center;
+	padding: 3rem;
+}
+
+#spinner .spinner-border {
+	width: 5rem; height: 5rem;
 }

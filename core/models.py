@@ -84,7 +84,7 @@ class Entry(models.Model):
         else: name = '∅'
 
         if name_prefix and self.name_prefix:
-            name = '%s: %s' % (self.name_prefix.name_get(), name,)
+            name = '%s: %s' % (self.name_prefix.name_get_no_name_prefix(), name,)
 
         return name
 
