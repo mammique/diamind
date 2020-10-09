@@ -311,13 +311,10 @@ a.btn i {
 	font-size: 200%;
 }
 
-.page-slideshow .entry-content-last {
-	margin-bottom: 50vh;
-}
-
 #spinner {
 	text-align: center;
-	padding: 3rem;
+	padding-top: 1rem;
+	min-height: 100vh;
 }
 
 #spinner .spinner-border {

@@ -11,12 +11,12 @@
 
 {% block content %}
 
-<div class="alert alert-secondary" role="alert">You are in slideshow mode, press Enter to go back to navigation.</div>
+<div class="alert alert-secondary" role="alert">You are in slideshow mode, press "Enter" to go back to navigation, "Arrow Down" for next slide "Arrow Up" for rewind.</div>
 
 {% include "core/entry_content.html" %}
 
-<div id="spinner" style="display: none;">
-<div class="spinner-border" role="status">
+<div id="spinner">
+<div class="spinner-border" style="display: none;" role="status">
   <span class="sr-only">Loading...</span>
 </div>
 </div>
@@ -25,18 +25,22 @@
 
 $(document).ready(function() {
 
-	var spinner = $('#spinner');
+	var spinner = $('.spinner-border');
+
+	function scroll_last_slide() {
+		$([document.documentElement, document.body]).animate({scrollTop: $('.entry-content').last().offset().top-25}, 1000);
+	}
 
 	function next_slide() {
 
 		if(spinner.is(":visible")) return;
 
-		spinner.show();
-
 		var last      = $('.entry-content').last();
 		var next_path = last.data('next-path');
 
 		if(!next_path) return;
+
+		spinner.show();
 
 		$.ajax({
 		  url:    next_path,
@@ -45,24 +49,35 @@ $(document).ready(function() {
 		}).done(function(response) {
 			last.after(response);
 			spinner.hide();
-			$("html, body").animate({ scrollTop: $(document).height() }, 1000);
-			$('.entry-content').removeClass('entry-content-last');
-			$('.entry-content').last().addClass('entry-content-last');
+		    scroll_last_slide();
 		});
 	}
 
-	$('.entry-content').last().addClass('entry-content-last');
-
 	document.onkeydown = function(evt) {
+
 	    if (evt.key === 'Enter') {
 	    	window.location = '{{ path_nav|safe }}';
 	    }
+
 	    else if (evt.key === 'ArrowDown') {
 	    	next_slide();
 	    }
+
+	    else if (evt.key === 'ArrowUp') {
+
+	    	if($('.entry-content').length <= 1) return;
+
+	    	var last = $('.entry-content').last();
+
+	    	last.fadeOut(500, function() {
+	    		last.remove();
+	    		scroll_last_slide();
+	    	});
+	    }
 	};
 
-	setTimeout(function() { $('.alert-secondary').fadeOut(1000); }, 3000)
+	setTimeout(function() { $('.alert-secondary').fadeOut(1000); }, 5000);
+	setTimeout(function() { window.scrollTo(0, 0); }, 100);
 });
 
 </script>

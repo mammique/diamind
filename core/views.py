@@ -201,18 +201,18 @@ def nav(request, path, slide=False):
         if entry_next_index < len(tree_entries_flat): entry_next_list = tree_entries_flat[entry_next_index]
         else: entry_next_list = None
 
-        i = 0
-        for e in tree_entries_flat: 
-            print(i, e)
-            i += 1
-
-        print(entry_next_index)
+        # i = 0
+        # for e in tree_entries_flat: 
+        #     print(i, e)
+        #     i += 1
 
         if entry_next_list:
             entry_next_path = '/'.join(map(lambda x: str(x.pk), entry_next_list))
             entry_next_path = reverse('slide', kwargs={'path': entry_next_path})
             entry_next_path = '%s/?e=%s' % (entry_next_path, entry_next_list[-1].pk,)
             entry_next      = {'path': entry_next_path}
+
+        print(entry_next_list)
 
     context = {'slide':             slide,
                'path_entries':      path_entries,
