@@ -317,6 +317,10 @@ a.btn i {
 	margin: 1.5rem;
 }
 
+.page-slideshow .img-fluid {
+	max-height: 48vh;
+}
+
 #spinner {
 	text-align: center;
 	padding-top: 1rem;

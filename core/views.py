@@ -307,7 +307,7 @@ class EntryAutocomplete(autocomplete.Select2QuerySetView):
 
         qs = Entry.objects.all().order_by('name')
 
-        if self.q:
+        if self.q and self.q.strip() != '*':
 
             qs_kw = None
 
