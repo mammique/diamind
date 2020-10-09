@@ -3,7 +3,7 @@
 {% load bootstrap4 %}
 
 {% block title %}{{ form_action }} Entry{% endblock %}
-{% block content_form_classes %} page-creator-new{% endblock %}
+{% block content_form_classes %} page-entry{% endblock %}
 
 {% block form %}
 
@@ -14,6 +14,20 @@
 {% if parent %}<input type="hidden" name="parent" value="{{ parent.pk }}" />{% endif %}
 {% bootstrap_form form layout='horizontal' %}
 <input class="col" type="hidden" name="next" value="{{ next }}">
+
+{% if through_forms %}
+<div class="form-group row form-entry-child-options">
+	<label class="col-md-3 col-form-label" for="id_parents">Child options</label>
+	<div class="col-md-9">
+	{% for t in through_forms %}
+		<div>
+		<label class="col-md-7">{{ t.instance.child.name_get }}</label> {% bootstrap_form t layout='inline' %}
+		</div>
+	{% endfor %}
+	</div>
+</div>
+{% endif %}
+
 {% bootstrap_button form_action button_type="submit" button_class="btn-primary" title="Or double-click on the form." %}
 </form>
 {{ form.media }}

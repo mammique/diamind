@@ -308,7 +308,13 @@ a.btn i {
 }
 
 .page-slideshow {
-	font-size: 200%;
+    width: 50%;
+    transform: scale(2);
+    transform-origin: 0 0;
+}
+
+.page-slideshow > * {
+	margin: 1.5rem;
 }
 
 #spinner {
@@ -319,4 +325,9 @@ a.btn i {
 
 #spinner .spinner-border {
 	width: 5rem; height: 5rem;
+}
+
+.page-form.page-entry .form-entry-child-options .form-group {
+	display: inline-block;
+	margin-right: 1rem;
 }

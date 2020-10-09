@@ -1,4 +1,7 @@
-<div class="entry-content"{% if entry_next %}data-next-path="{{ entry_next.path }}"{% endif %}>	
+<div class="entry-content"
+{% if entry_next %}data-next-path="{{ entry_next.path }}"{% endif %}
+{% if entry_next.through.slide_auto %}data-next-auto="true"{% endif %}
+{% if entry_next.through.slide_title %}data-next-title="true"{% endif %}>	
 
 	{% if not slide %}
 	<div id="navigation-child-actions">	
@@ -13,7 +16,7 @@
 	{% endif %}
 
 	{% if child.name.strip != '' %}
-		<h1>{{ child.name }}</h1>
+		<h1 class="child-name">{{ child.name }}</h1>
 		{% if child.aka.strip != '' %}
 			<h2 class="aka">{{ child.aka }}</h2>
 		{% endif %}

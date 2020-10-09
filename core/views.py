@@ -166,7 +166,7 @@ def nav(request, path, slide=False):
 
             q = e.children.all().order_by('parents_through__order', 'children_through__order',)
 
-            if not q.count(): return
+            # if not q.count(): return
 
             appended = [] # Quick fix for OrderedModel .distinct() fail.
 
@@ -197,8 +197,17 @@ def nav(request, path, slide=False):
 
         # tree_rec(tree_root_entry, [tree_root_entry])
 
-        entry_next_index = tree_entries_flat.index(path_entries_to_child_raw)+1
-        if entry_next_index < len(tree_entries_flat): entry_next_list = tree_entries_flat[entry_next_index]
+        entry_next_index   = tree_entries_flat.index(path_entries_to_child_raw)+1
+        entry_next_through = None
+
+        if entry_next_index < len(tree_entries_flat):
+
+            entry_next_list = tree_entries_flat[entry_next_index]
+
+            through_get_kwargs = {'child': entry_next_list[-1]}
+            if len(entry_next_list) > 1: through_get_kwargs['parent'] = entry_next_list[-2]
+            entry_next_through = EntryParentThroughModel.objects.get(**through_get_kwargs)
+
         else: entry_next_list = None
 
         # i = 0
@@ -210,9 +219,9 @@ def nav(request, path, slide=False):
             entry_next_path = '/'.join(map(lambda x: str(x.pk), entry_next_list))
             entry_next_path = reverse('slide', kwargs={'path': entry_next_path})
             entry_next_path = '%s/?e=%s' % (entry_next_path, entry_next_list[-1].pk,)
-            entry_next      = {'path': entry_next_path}
+            entry_next      = {'path': entry_next_path, 'through': entry_next_through}
 
-        print(entry_next_list)
+        # print(entry_next_through, entry_next_through.pk)
 
     context = {'slide':             slide,
                'path_entries':      path_entries,
@@ -279,6 +288,14 @@ class EntryParentForm(ModelForm):
 
         model  = Entry
         fields = ('name', 'name_prefix_bool', 'aka', 'text' ,'file', 'image', 'home',)
+
+
+class EntryParentThroughForm(ModelForm):
+
+    class Meta:
+
+        model  = EntryParentThroughModel
+        fields = ('slide_auto', 'slide_title',)
 
 
 class EntryAutocomplete(autocomplete.Select2QuerySetView):
@@ -366,7 +383,19 @@ def entry_update(request, pk):
 
     form = EntryForm(instance=entry)
 
+    through_forms = []
+    for t in EntryParentThroughModel.objects.filter(parent=entry).order_by('order'):
+        through_forms.append(EntryParentThroughForm(instance=t, prefix='through_%s' % t.pk))
+        # print(t, t.pk)
+
     if request.method == 'POST':
+
+        through_forms = []
+        for t in EntryParentThroughModel.objects.filter(parent=entry).order_by('order'):
+            f = EntryParentThroughForm(request.POST, instance=t, prefix='through_%s' % t.pk)
+            if f.is_valid(): f.save()
+            through_forms.append(f)
+            # print(t, t.pk)
 
         form = EntryForm(request.POST, request.FILES, instance=entry)
 
@@ -382,7 +411,7 @@ def entry_update(request, pk):
 
             if nxt: return redirect(nxt)
 
-    return render(request, 'core/entry_create.html', {'form': form, 'form_action': 'Update', 'next': nxt})
+    return render(request, 'core/entry_create.html', {'form': form, 'through_forms': through_forms, 'form_action': 'Update', 'next': nxt})
 
 
 @login_required

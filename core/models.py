@@ -14,8 +14,10 @@ from ordered_model.models import OrderedModel
 
 class EntryParentThroughModel(OrderedModel):
 
-    parent = models.ForeignKey('Entry', on_delete=models.CASCADE, related_name="children_through")
-    child  = models.ForeignKey('Entry', on_delete=models.CASCADE, related_name="parents_through")
+    parent      = models.ForeignKey('Entry', on_delete=models.CASCADE, related_name="children_through")
+    child       = models.ForeignKey('Entry', on_delete=models.CASCADE, related_name="parents_through")
+    slide_auto  = models.BooleanField(default=False)
+    slide_title = models.BooleanField(default=False)
 
     order_with_respect_to = 'parent'
 
